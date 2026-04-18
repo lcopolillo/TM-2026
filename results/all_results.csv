@@ -1,0 +1,32 @@
+task,approach,preprocessing,accuracy,precision,recall,f1,notes
+2.1.1,TextBlob,"raw text, polarity > 0 → pos",0.7,0.6399,0.9442,0.7628,
+2.1.1,VADER,"raw text, compound >= 0.05 → pos",0.7015,0.6604,0.8562,0.7456,Designed for short text; long IMDB reviews may reduce accuracy
+2.1.1,Stanza,sentence-level avg sentiment > 1 → pos,0.8335,0.9333,0.726,0.8167,
+2.1.2,"DistilBERT (pre-trained, SST-2)",truncation to 512 tokens,0.9,0.9228,0.8777,0.8997,No fine-tuning; zero-shot transfer from SST-2 to IMDB
+2.2,NRC Lexicon,"lowercase, lemmatization, no negation",0.646,0.616,0.816,0.702,tie-break → neg
+2.2,NRC Lexicon + Negation,"lowercase, lemmatization, negation window=3",0.655,0.6254,0.8102,0.7059,polarity flipped for tokens within 3 positions after negation word
+2.2,NRC Lexicon,"lowercase, lemmatization, no negation",0.646,0.616,0.816,0.702,tie-break → neg
+2.2,NRC Lexicon + Negation,"lowercase, lemmatization, negation window=3",0.655,0.6254,0.8102,0.7059,polarity flipped for tokens within 3 positions after negation word
+2.2,NRC Lexicon,"lowercase, lemmatization, no negation",0.646,0.616,0.816,0.702,tie-break → neg
+2.2,NRC Lexicon + Negation,"lowercase, lemmatization, negation window=3",0.655,0.6254,0.8102,0.7059,polarity flipped for tokens within 3 positions after negation word
+2.2,NRC Lexicon,"lowercase, lemmatization, no negation",0.646,0.616,0.816,0.702,tie-break → neg
+2.2,NRC Lexicon + Negation,"lowercase, lemmatization, negation window=3",0.655,0.6254,0.8102,0.7059,polarity flipped for tokens within 3 positions after negation word
+2.2,NRC Lexicon,"lowercase, lemmatization, no negation",0.646,0.616,0.816,0.702,tie-break → neg
+2.2,NRC Lexicon + Negation,"lowercase, lemmatization, negation window=3",0.655,0.6254,0.8102,0.7059,polarity flipped for tokens within 3 positions after negation word
+2.2,NRC Lexicon,"lowercase, lemmatization, no negation",0.646,0.616,0.816,0.702,tie-break → neg
+2.2,NRC Lexicon + Negation,"lowercase, lemmatization, negation window=3",0.655,0.6254,0.8102,0.7059,polarity flipped for tokens within 3 positions after negation word
+2.2,NRC Lexicon,"lowercase, lemmatization, no negation",0.646,0.616,0.816,0.702,tie-break → neg
+2.2,NRC Lexicon + Negation,"lowercase, lemmatization, negation window=3",0.655,0.6254,0.8102,0.7059,polarity flipped for tokens within 3 positions after negation word
+2.3,LR (BoW),"lowercase, BoW 10K",0.8815,0.8875,0.8796,0.8835,
+2.3,LR (BoW),"lowercase+stopwords+lemma, BoW 10K",0.8825,0.8885,0.8806,0.8845,
+2.3,NB (BoW),"lowercase+stopwords+lemma, BoW 10K",0.858,0.8758,0.8415,0.8583,
+2.3,SVM (BoW),"lowercase+stopwords+lemma, BoW 10K",0.854,0.8614,0.8513,0.8563,
+2.3,LR (TF-IDF uni),"lowercase+stopwords+lemma, TF-IDF 10K uni",0.8925,0.8929,0.8973,0.8951,
+2.3,LR (TF-IDF bi),"lowercase+stopwords+lemma, TF-IDF 10K bi",0.9,0.9014,0.9031,0.9022,
+2.3,SVM (TF-IDF uni),"lowercase+stopwords+lemma, TF-IDF 10K uni",0.9,0.9014,0.9031,0.9022,
+2.3,SVM (TF-IDF bi + neg),"lowercase+stopwords+lemma+negation, TF-IDF 10K bi",0.9045,0.9094,0.9031,0.9062,
+2.3,"SVM (TF-IDF bi + neg, C=0.1)","lowercase+stopwords+lemma+negation, TF-IDF 10K bi",0.9035,0.906,0.9051,0.9055,"GridSearchCV 5-fold, best C=0.1"
+2.4,Claude Haiku (claude-haiku-4-5-20251001) — generic prompt,"200-sample stratified subset, truncated to 1500 chars",0.95,0.9412,0.96,0.9505,"Model: claude-haiku-4-5-20251001, max_tokens=10, temperature=default"
+2.4,Claude Haiku (claude-haiku-4-5-20251001) — domain prompt,"200-sample stratified subset, truncated to 1500 chars",0.955,0.9417,0.97,0.9557,"Model: claude-haiku-4-5-20251001, max_tokens=10, temperature=default"
+2.4,Claude Haiku (claude-haiku-4-5-20251001) — few_shot prompt,"200-sample stratified subset, truncated to 1500 chars",0.95,0.9412,0.96,0.9505,"Model: claude-haiku-4-5-20251001, max_tokens=10, temperature=default"
+2.3,DistilBERT (fine-tuned),"truncation to 512 tokens, dynamic padding per batch",0.9475,0.9508,0.9462,0.9485,"distilbert-base-uncased, 3 epochs, lr=2e-5, bs=16"

@@ -1,0 +1,41 @@
+\begin{table}
+\caption{Results on IMDB test set}
+\label{tab:results}
+\begin{tabular}{llrrrr}
+\toprule
+task & approach & accuracy & precision & recall & f1 \\
+\midrule
+2.1.1 & Stanza & 0.8335 & 0.9333 & 0.7260 & 0.8167 \\
+2.1.1 & VADER & 0.7015 & 0.6604 & 0.8562 & 0.7456 \\
+2.1.1 & TextBlob & 0.7000 & 0.6399 & 0.9442 & 0.7628 \\
+2.1.2 & DistilBERT (pre-trained, SST-2) & 0.9000 & 0.9228 & 0.8777 & 0.8997 \\
+2.2 & NRC Lexicon + Negation & 0.6550 & 0.6254 & 0.8102 & 0.7059 \\
+2.2 & NRC Lexicon + Negation & 0.6550 & 0.6254 & 0.8102 & 0.7059 \\
+2.2 & NRC Lexicon + Negation & 0.6550 & 0.6254 & 0.8102 & 0.7059 \\
+2.2 & NRC Lexicon + Negation & 0.6550 & 0.6254 & 0.8102 & 0.7059 \\
+2.2 & NRC Lexicon + Negation & 0.6550 & 0.6254 & 0.8102 & 0.7059 \\
+2.2 & NRC Lexicon + Negation & 0.6550 & 0.6254 & 0.8102 & 0.7059 \\
+2.2 & NRC Lexicon + Negation & 0.6550 & 0.6254 & 0.8102 & 0.7059 \\
+2.2 & NRC Lexicon & 0.6460 & 0.6160 & 0.8160 & 0.7020 \\
+2.2 & NRC Lexicon & 0.6460 & 0.6160 & 0.8160 & 0.7020 \\
+2.2 & NRC Lexicon & 0.6460 & 0.6160 & 0.8160 & 0.7020 \\
+2.2 & NRC Lexicon & 0.6460 & 0.6160 & 0.8160 & 0.7020 \\
+2.2 & NRC Lexicon & 0.6460 & 0.6160 & 0.8160 & 0.7020 \\
+2.2 & NRC Lexicon & 0.6460 & 0.6160 & 0.8160 & 0.7020 \\
+2.2 & NRC Lexicon & 0.6460 & 0.6160 & 0.8160 & 0.7020 \\
+2.3 & DistilBERT (fine-tuned) & 0.9475 & 0.9508 & 0.9462 & 0.9485 \\
+2.3 & SVM (TF-IDF bi + neg) & 0.9045 & 0.9094 & 0.9031 & 0.9062 \\
+2.3 & SVM (TF-IDF bi + neg, C=0.1) & 0.9035 & 0.9060 & 0.9051 & 0.9055 \\
+2.3 & LR (TF-IDF bi) & 0.9000 & 0.9014 & 0.9031 & 0.9022 \\
+2.3 & SVM (TF-IDF uni) & 0.9000 & 0.9014 & 0.9031 & 0.9022 \\
+2.3 & LR (TF-IDF uni) & 0.8925 & 0.8929 & 0.8973 & 0.8951 \\
+2.3 & LR (BoW) & 0.8825 & 0.8885 & 0.8806 & 0.8845 \\
+2.3 & LR (BoW) & 0.8815 & 0.8875 & 0.8796 & 0.8835 \\
+2.3 & NB (BoW) & 0.8580 & 0.8758 & 0.8415 & 0.8583 \\
+2.3 & SVM (BoW) & 0.8540 & 0.8614 & 0.8513 & 0.8563 \\
+2.4 & Claude Haiku (claude-haiku-4-5-20251001) — domain prompt & 0.9550 & 0.9417 & 0.9700 & 0.9557 \\
+2.4 & Claude Haiku (claude-haiku-4-5-20251001) — generic prompt & 0.9500 & 0.9412 & 0.9600 & 0.9505 \\
+2.4 & Claude Haiku (claude-haiku-4-5-20251001) — few_shot prompt & 0.9500 & 0.9412 & 0.9600 & 0.9505 \\
+\bottomrule
+\end{tabular}
+\end{table}

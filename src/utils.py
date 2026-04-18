@@ -13,7 +13,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 # ---------------------------------------------------------------------------
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = ROOT / "docs" / "input"
+DATA_DIR = ROOT / "data"
 RESULTS_CSV = ROOT / "results" / "all_results.csv"
 NRC_LEXICON_PATH = ROOT / "docs" / "Text-Mining-main" / "data" / "NRC-lexicon.csv"
 
