@@ -8,3 +8,20 @@ jupyter
 ipykernel
 ipywidgets
 tqdm
+# Task 2.1.1 — lexicon/rule-based
+textblob
+vaderSentiment
+stanza
+# Task 2.1.2 & 2.3 — transformers
+transformers
+torch
+datasets
+evaluate
+accelerate
+# Task 2.2 — NRC lexicon (uses nltk already above)
+# Task 2.3 — classical ML extras (gensim excluded: no Python 3.14 support)
+# Task 2.4 — LLM prompting
+openai
+anthropic
+# EDA
+wordcloud
