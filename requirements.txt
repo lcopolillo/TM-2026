@@ -8,6 +8,7 @@ jupyter
 ipykernel
 ipywidgets
 tqdm
+python-dotenv
 # Task 2.1.1 — lexicon/rule-based
 textblob
 vaderSentiment
@@ -18,10 +19,9 @@ torch
 datasets
 evaluate
 accelerate
-# Task 2.2 — NRC lexicon (uses nltk already above)
-# Task 2.3 — classical ML extras (gensim excluded: no Python 3.14 support)
+# Task 2.2 — NRC lexicon (bundled, no external file needed)
+nrclex
 # Task 2.4 — LLM prompting
-openai
 anthropic
 # EDA
 wordcloud

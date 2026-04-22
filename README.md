@@ -19,8 +19,7 @@ TM-2026/
 │   ├── Trabalho.md              # Assignment specification
 │   ├── report.md                # Full report (Markdown)
 │   ├── report.tex               # Full report (LaTeX)
-│   ├── references-analyze.md    # Annotated bibliography
-│   └── Text-Mining-main/data/   # NRC EmoLex lexicon
+│   └── references-analyze.md    # Annotated bibliography
 ├── models/                      # Fine-tuned model checkpoints (not committed — 2.2 GB)
 │   └── distilbert_finetuned/
 ├── notebooks/                   # One notebook per task, run in order
@@ -43,7 +42,7 @@ TM-2026/
 
 ## Setup
 
-**Requirements:** Python 3.13+
+**Requirements:** Python 3.11+
 
 ### 1. Clone the repository
 
@@ -66,7 +65,15 @@ source .venv/bin/activate      # macOS/Linux
 pip install -r requirements.txt
 ```
 
-### 4. Add the dataset
+### 4. Download NLTK data
+
+Run once after installing:
+
+```bash
+python -c "import nltk; nltk.download('punkt'); nltk.download('punkt_tab'); nltk.download('stopwords'); nltk.download('wordnet')"
+```
+
+### 5. Add the dataset
 
 Place the IMDB dataset files (available on Moodle) in the `data/` directory:
 
@@ -78,21 +85,19 @@ data/
     └── imdb_reviews_test.csv
 ```
 
-### 5. (Task 2.4 only) Set the Anthropic API key
+### 6. (Task 2.4 only) Set the Anthropic API key
+
+Create a `.env` file at the project root:
 
 ```bash
-export ANTHROPIC_API_KEY="your-key-here"
-# or add it to a .env file at the project root:
 echo "ANTHROPIC_API_KEY=your-key-here" > .env
 ```
 
-### 6. Run the notebooks
+### 7. Run the notebooks
 
-```bash
-jupyter notebook notebooks/
-```
+Open the project in VS Code (or run `jupyter notebook`), select the `.venv` Python interpreter, and run notebooks in order (00 → 08). Each notebook saves its results to `results/all_results.csv`.
 
-Run them in order (00 → 08). Each notebook saves its results to `results/all_results.csv`.
+> **Note — notebook 06:** Fine-tuning DistilBERT takes ~6.5 hours on CPU. Skip and use the pre-trained checkpoint if already available in `models/distilbert_finetuned/`.
 
 ---
 
@@ -125,7 +130,7 @@ Run them in order (00 → 08). Each notebook saves its results to `results/all_r
 | TextBlob | 0.7000 | 0.7628 |
 | NRC Lexicon + Negation | 0.6550 | 0.7059 |
 
-> Note: Claude Haiku was evaluated on a stratified 200-sample subset of the test set.
+> Note: Claude Haiku (notebook 07) requires an Anthropic API key and evaluates on a stratified 500-sample subset (~1 500 API calls, ~15–20 min).
 
 ---
 

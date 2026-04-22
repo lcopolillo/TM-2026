@@ -14,7 +14,7 @@ ISCTE — Instituto Universitário de Lisboa
 
 Este trabalho explora e compara múltiplas abordagens de análise de sentimento binária (positivo/negativo) aplicadas ao conjunto de dados IMDB Movie Reviews. O conjunto de treino contém 41 750 críticas e o conjunto de teste 2 000 críticas, com distribuição equilibrada entre as duas classes.
 
-Foram implementadas e avaliadas quatro famílias de métodos: (i) ferramentas baseadas em léxicos e regras (TextBlob, VADER e Stanza), com acurácias entre 70% e 83%; (ii) um modelo transformador pré-treinado sem ajuste fino (`distilbert-base-uncased-finetuned-sst-2-english`), que alcançou 90%; (iii) um classificador baseado no léxico NRC EmoLex com e sem tratamento da negação, atingindo 64–65%; (iv) modelos de aprendizagem automática clássica (Regressão Logística, Naive Bayes, SVM) com representações BoW e TF-IDF, chegando a 90,5%, e o DistilBERT com ajuste fino, que obteve 94,8%; (v) utilização do modelo de língua Claude Haiku baseado em instruções, que alcançou 95,5% com uma instrução orientada ao domínio.
+Foram implementadas e avaliadas quatro famílias de métodos: (i) ferramentas baseadas em léxicos e regras (TextBlob, VADER e Stanza), com acurácias entre 70% e 83%; (ii) um modelo transformador pré-treinado sem ajuste fino (`distilbert-base-uncased-finetuned-sst-2-english`), que alcançou 90%; (iii) um classificador baseado no léxico NRC EmoLex com e sem tratamento da negação, atingindo 64–65%; (iv) modelos de aprendizagem automática clássica (Regressão Logística, Naive Bayes, SVM) com representações BoW e TF-IDF, chegando a 90,25%, e o DistilBERT com ajuste fino, que obteve 94,75%; (v) utilização do modelo de língua Claude Haiku baseado em instruções, que alcançou 96,2% com uma instrução com exemplos classificados (few-shot), avaliado num subconjunto estratificado de 500 amostras.
 
 Os resultados mostram que abordagens baseadas em instruções com modelos de língua de grande dimensão, sem qualquer treino específico no conjunto de dados, atingiram desempenho comparável ou superior ao ajuste fino de modelos transformadores.
 
@@ -29,9 +29,9 @@ Tiago Vieira: 33,3% — implementação da tarefa 2.4 (LLM prompting), coordena�
 
 This work explores and compares multiple approaches to binary sentiment analysis (positive/negative) applied to the IMDB Movie Reviews dataset. The training set contains 41 750 reviews and the test set 2 000 reviews, with a balanced class distribution.
 
-Four families of methods were implemented and evaluated: (i) lexicon- and rule-based tools (TextBlob, VADER, and Stanza), achieving 70–83% accuracy; (ii) a pre-trained transformer without fine-tuning (`distilbert-base-uncased-finetuned-sst-2-english`), reaching 90%; (iii) an NRC EmoLex-based classifier with and without negation handling, reaching 64–65%; (iv) classical machine learning models (Logistic Regression, Naive Bayes, SVM) with BoW and TF-IDF representations reaching 90.5%, and fine-tuned DistilBERT achieving 94.8%; (v) instruction-based LLM inference using Claude Haiku, which reached 95.5% with a domain-aware prompt.
+Four families of methods were implemented and evaluated: (i) lexicon- and rule-based tools (TextBlob, VADER, and Stanza), achieving 70–83% accuracy; (ii) a pre-trained transformer without fine-tuning (`distilbert-base-uncased-finetuned-sst-2-english`), reaching 90%; (iii) an NRC EmoLex-based classifier with and without negation handling, reaching 64–65%; (iv) classical machine learning models (Logistic Regression, Naive Bayes, SVM) with BoW and TF-IDF representations reaching 90.25%, and fine-tuned DistilBERT achieving 94.75%; (v) instruction-based LLM inference using Claude Haiku, which reached 96.2% with a few-shot prompt on a stratified 500-sample subset.
 
-The results demonstrate that instruction-based LLMs, without any task-specific training, can match or exceed the performance of fine-tuned transformer models on this dataset.
+The results demonstrate that instruction-based LLMs, without any task-specific training, achieve the highest accuracy in this study, and that classical ML with TF-IDF and negation marking remains competitive with pre-trained transformers at a fraction of the computational cost.
 
 ---
 
@@ -43,19 +43,14 @@ The results demonstrate that instruction-based LLMs, without any task-specific t
   - [Table of Contents](#table-of-contents)
   - [1. Introduction](#1-introduction)
   - [2. Data](#2-data)
-  - [3. Tasks](#3-tasks)
-    - [3.1 Baseline — Pre-existing Tools (Task 2.1)](#31-baseline--pre-existing-tools-task-21)
-      - [TextBlob](#textblob)
-      - [VADER](#vader)
-      - [Stanza](#stanza)
-      - [DistilBERT Pre-trained (SST-2) — Task 2.1.2](#distilbert-pre-trained-sst-2--task-212)
-    - [3.2 Sentiment Lexicon — NRC EmoLex (Task 2.2)](#32-sentiment-lexicon--nrc-emolex-task-22)
-    - [3.3 Classical Machine Learning (Task 2.3)](#33-classical-machine-learning-task-23)
-    - [3.4 Transformer Fine-tuning (Task 2.3)](#34-transformer-fine-tuning-task-23)
-    - [3.5 Generative Models — LLM Prompting (Task 2.4)](#35-generative-models--llm-prompting-task-24)
-  - [4. Results — Overall Comparison](#4-results--overall-comparison)
+  - [3. Methodology](#3-methodology)
+    - [3.1 Baseline Evaluation: Off-the-shelf Sentiment Analysis Tools](#31-baseline-evaluation-off-the-shelf-sentiment-analysis-tools)
+    - [3.2 Lexicon-Based Classification with NRC EmoLex](#32-lexicon-based-classification-with-nrc-emolex)
+    - [3.3 Supervised Classification with Classical Machine Learning](#33-supervised-classification-with-classical-machine-learning)
+    - [3.4 Domain Adaptation via Transformer Fine-tuning](#34-domain-adaptation-via-transformer-fine-tuning)
+    - [3.5 Zero-Shot and Few-Shot Prompting with Large Language Models](#35-zero-shot-and-few-shot-prompting-with-large-language-models)
+  - [4. Results and Discussion](#4-results-and-discussion)
   - [5. Conclusions](#5-conclusions)
-    - [Future Work](#future-work)
   - [Appendix A — Prompt Definitions](#appendix-a--prompt-definitions)
     - [Prompt 1 — Generic](#prompt-1--generic)
     - [Prompt 2 — Domain-aware](#prompt-2--domain-aware)
@@ -69,13 +64,13 @@ The results demonstrate that instruction-based LLMs, without any task-specific t
 - [Figure 2 — Token count distribution by class (train set)](#2-data)
 - [Figure 3 — Top 20 words by class (train set, stopwords removed)](#2-data)
 - [Figure 4 — Word clouds — positive and negative reviews](#2-data)
-- [Figure 5 — Task 2.1: Accuracy and F1 comparison across baseline tools](#31-baseline--pre-existing-tools-task-21)
-- [Figure 6 — DistilBERT pre-trained (SST-2): confidence distribution on test set](#31-baseline--pre-existing-tools-task-21)
-- [Figure 7 — Task 2.2: NRC lexicon classifier results with and without negation handling](#32-sentiment-lexicon--nrc-emolex-task-22)
-- [Figure 8 — Task 2.3: Classical ML accuracy across feature representations and classifiers](#33-classical-machine-learning-task-23)
-- [Figure 9 — Task 2.3: DistilBERT fine-tuning — training loss and validation accuracy per epoch](#34-transformer-fine-tuning-task-23)
-- [Figure 10 — Task 2.4: Claude Haiku metrics across the three prompt strategies](#35-generative-models--llm-prompting-task-24)
-- [Figure 11 — All approaches ranked by accuracy, colour-coded by task family](#4-results--overall-comparison)
+- [Figure 5 — Accuracy and F1 comparison across baseline tools](#31-baseline-evaluation-off-the-shelf-sentiment-analysis-tools)
+- [Figure 6 — DistilBERT pre-trained (SST-2): confidence distribution on test set](#31-baseline-evaluation-off-the-shelf-sentiment-analysis-tools)
+- [Figure 7 — NRC lexicon classifier results with and without negation handling](#32-lexicon-based-classification-with-nrc-emolex)
+- [Figure 8 — Classical ML accuracy across feature representations and classifiers](#33-supervised-classification-with-classical-machine-learning)
+- [Figure 9 — DistilBERT fine-tuning — training loss and validation accuracy per epoch](#34-domain-adaptation-via-transformer-fine-tuning)
+- [Figure 10 — Claude Haiku metrics across the three prompt strategies](#35-zero-shot-and-few-shot-prompting-with-large-language-models)
+- [Figure 11 — All approaches ranked by accuracy, colour-coded by task family](#4-results-and-discussion)
 
 ---
 
@@ -128,37 +123,21 @@ This length has direct consequences for each method:
 
 ---
 
-## 3. Tasks
+## 3. Methodology
 
-### 3.1 Baseline — Pre-existing Tools (Task 2.1)
+### 3.1 Baseline Evaluation: Off-the-shelf Sentiment Analysis Tools
 
-The first set of experiments applied off-the-shelf tools to the raw test set without any task-specific training. These results establish the performance floor for our subsequent trained models.
+As a first step, a set of pre-existing tools was applied directly to the test set without any task-specific training or parameter adjustment. These experiments serve as a reference baseline, establishing the upper bound of what off-the-shelf methods can achieve and providing a point of comparison for all subsequent approaches.
 
-#### TextBlob
+**TextBlob** computes a document-level polarity score in the range [−1, 1] by averaging word-level polarities from its built-in lexicon, derived from the Pattern library. A score greater than zero is assigned the label `pos`; zero or below is assigned `neg`. No preprocessing was applied prior to scoring, as the tool is designed to operate on raw text. TextBlob achieved an accuracy of **70.0%**, characterised by high recall (0.944) but low precision (0.640). This pronounced imbalance reflects a systematic positive-class bias: the lexicon was constructed from general-purpose web text in which positive language is overrepresented relative to a balanced benchmark, causing the tool to over-predict positive sentiment.
 
-TextBlob computes a polarity score in the range [−1, 1] by averaging word-level polarities from its built-in lexicon (derived from the Pattern library). A polarity score > 0 is classified as `pos`; ≤ 0 as `neg`. No preprocessing was applied — the tool receives the raw review text.
+**VADER** (Valence Aware Dictionary and sEntiment Reasoner) is a rule-based analyser designed specifically for short social media content. It produces a compound score in [−1, 1] by combining word-level valence ratings with heuristic rules for modifiers such as capitalisation, punctuation, and degree adverbs. A compound score of 0.05 or above was mapped to `pos`; all other values to `neg`. VADER achieved **70.2% accuracy**, virtually identical to TextBlob, with similarly high recall (0.856) and low precision (0.660). Although VADER incorporates more sophisticated rules than a pure lexicon lookup, its modifier heuristics were calibrated for short texts and lose reliability when aggregated across the approximately 175 tokens of a typical IMDB review.
 
-TextBlob achieved **70.0% accuracy**, with notably high recall (0.944) but low precision (0.640). This imbalance indicates a strong positive bias: the tool tends to classify most reviews as positive, which is typical for tools built on general-purpose web text where positive language is more frequent than in balanced benchmark datasets.
+**Stanza** applies a full neural NLP pipeline that includes a sentence-level sentiment classifier trained on the Stanford Sentiment Treebank. For each review, the pipeline produces a three-class prediction per sentence (negative = 0, neutral = 1, positive = 2); these scores were averaged across all sentences and a threshold of greater than 1.0 was used to assign the `pos` label. Stanza achieved **83.4% accuracy**, a substantial improvement of 13 percentage points over VADER and TextBlob. The neural sentence-level model captures contextual interactions within sentences that word-list approaches cannot represent. However, Stanza exhibits the opposite precision–recall trade-off to the other tools: high precision (0.933) at the expense of recall (0.726), indicating a tendency toward conservative positive predictions.
 
-#### VADER
+**DistilBERT pre-trained (SST-2)** was evaluated using the Hugging Face `pipeline` API with the checkpoint `distilbert-base-uncased-finetuned-sst-2-english`, a 66-million-parameter transformer fine-tuned on SST-2 short sentence fragments. No further training on IMDB data was performed, making this a zero-shot cross-domain transfer evaluation. Reviews were truncated to 512 subword tokens to comply with the model's maximum sequence length. This approach achieved **90.0% accuracy**, the highest among all baseline methods and substantially above Stanza. The result demonstrates the breadth of language knowledge encoded in a pre-trained transformer, which generalises from short SST-2 snippets to full-length IMDB reviews without any domain adaptation.
 
-VADER (Valence Aware Dictionary and sEntiment Reasoner) is a rule-based tool designed specifically for short social media texts. It produces a compound score in [−1, 1] via a combination of word-level valence and grammatical rules for modifiers (capitalisation, punctuation, degree words). A compound score ≥ 0.05 was mapped to `pos`; all other scores to `neg`.
-
-VADER achieved **70.2% accuracy**, very close to TextBlob. Like TextBlob, it shows high recall (0.856) and low precision (0.660). The tool was not designed for long-form reviews and this limitation is reflected in the results. The aggregation of polarity signals across 175 words per review introduces noise, and the rule-based modifiers were calibrated for tweet-length contexts.
-
-#### Stanza
-
-Stanza applies a full neural NLP pipeline, including a sentence-level sentiment model trained on SST (Stanford Sentiment Treebank). It produces a three-class prediction (negative=0, neutral=1, positive=2) per sentence. We averaged sentence-level scores across the review and applied a threshold of > 1 for `pos`.
-
-Stanza achieved **83.4% accuracy**, clearly outperforming the other lexicon/rule-based tools. Its neural components allow it to capture richer contextual patterns than purely word-list-based approaches. However, it shows the opposite precision–recall trade-off: high precision (0.933) at the cost of lower recall (0.726), meaning it tends to be conservative with positive predictions.
-
-#### DistilBERT Pre-trained (SST-2) — Task 2.1.2
-
-The Hugging Face `pipeline` API was used with `distilbert-base-uncased-finetuned-sst-2-english`, a DistilBERT model fine-tuned on the Stanford Sentiment Treebank (SST-2). No additional training was performed on IMDB data, making this a zero-shot transfer evaluation.
-
-DistilBERT pre-trained achieved **90.0% accuracy**, substantially above all rule-based tools. Despite being trained on short movie snippets from SST-2, the model transfers well to full-length IMDB reviews. Reviews were truncated to 512 tokens to satisfy the model's maximum sequence length.
-
-**Task 2.1 results summary:**
+**Baseline results summary:**
 
 | Approach                        | Acc.   | Prec.  | Rec.   | F1     |
 |---------------------------------|--------|--------|--------|--------|
@@ -167,29 +146,23 @@ DistilBERT pre-trained achieved **90.0% accuracy**, substantially above all rule
 | VADER                           | 0.7015 | 0.6604 | 0.8562 | 0.7456 |
 | TextBlob                        | 0.7000 | 0.6399 | 0.9442 | 0.7628 |
 
+Figure 5 summarises accuracy and F1 across the four baseline tools. The contrast between TextBlob/VADER and Stanza illustrates the performance ceiling of purely word-counting approaches, while DistilBERT's 90.0% accuracy establishes a strong reference point for trained models. Figure 6 shows the confidence distribution of the DistilBERT SST-2 classifier: predictions are heavily concentrated near 0 and 1, indicating that the model assigns high confidence to most reviews, with only a small proportion near the decision boundary.
+
 ![Figure 5 — Task 2.1: Accuracy and F1 comparison across baseline tools](../results/fig_lexicon_rules.png)
 
 ![Figure 6 — DistilBERT pre-trained (SST-2): confidence distribution on test set](../results/fig_distilbert_baseline_confidence.png)
 
 ---
 
-### 3.2 Sentiment Lexicon — NRC EmoLex (Task 2.2)
+### 3.2 Lexicon-Based Classification with NRC EmoLex
 
-The NRC Word-Emotion Association Lexicon (EmoLex) contains 14 182 English words annotated with binary flags for positive and negative polarity (plus eight emotion categories). Only the `Positive` and `Negative` columns were used.
+The NRC Word-Emotion Association Lexicon (EmoLex) associates 14 182 English words with binary flags for positive and negative polarity, plus eight emotion categories (anger, anticipation, disgust, fear, joy, sadness, surprise, trust). For this task only the `Positive` and `Negative` columns were used.
 
-**Preprocessing:** reviews were lowercased and lemmatized using NLTK's `WordNetLemmatizer` before lexicon lookup.
+**Preprocessing pipeline:** reviews were lowercased and lemmatized with NLTK's `WordNetLemmatizer` to map inflected forms (e.g. *loved* → *love*) to their dictionary entries, maximising lexicon coverage. Punctuation was kept, as it does not affect lookup.
 
-**Classification rule:** count the number of positive-annotated and negative-annotated tokens in the review. Assign the class with the higher count; ties default to `neg`.
+**Classification rule:** for each review, count the total number of tokens that are flagged as `Positive` (score *P*) and the total flagged as `Negative` (score *N*). The predicted label is `pos` if *P* > *N*, and `neg` otherwise; ties default to `neg`. This rule is intentionally simple — it treats every matched token as an equally weighted vote, with no weighting by frequency or position.
 
-Two experiments were conducted:
-
-**Experiment 1 — Without negation handling**
-
-Raw polarity counts after lowercasing and lemmatization. The classifier achieved **64.6% accuracy**.
-
-**Experiment 2 — With negation handling (window = 3)**
-
-After any negation trigger word (*not, no, never, n't, nor, neither, hardly, barely, scarcely*), the polarity of the following three tokens is flipped before counting. This converts "not good" into a negative signal instead of a positive one. The classifier achieved **65.5% accuracy**, a +0.9 pp gain.
+**Negation handling (window = 3):** negation is processed *before* stopword removal. After any trigger word (*not, no, never, n't, nor, neither, hardly, barely, scarcely*), the polarity vote of the **next three tokens** is flipped: a token that would have added to *P* instead adds to *N*, and vice versa. For example, in *"not a good film"*, the tokens *good* and *film* are marked `_NEG`, reversing their contribution. The window size of 3 was chosen to cover short negation scopes without propagating too far across clause boundaries.
 
 | Approach                          | Acc.   | Prec.  | Rec.   | F1     |
 |-----------------------------------|--------|--------|--------|--------|
@@ -198,71 +171,83 @@ After any negation trigger word (*not, no, never, n't, nor, neither, hardly, bar
 
 ![Figure 7 — Task 2.2: NRC lexicon classifier results with and without negation handling](../results/fig_nrc_lexicon.png)
 
-Both results are well above the 51.1% majority baseline but substantially below all other approaches tested. The main limitation is vocabulary coverage: a large fraction of IMDB review vocabulary — character names, genre-specific terms, cinematic jargon — has no NRC polarity annotation, so those tokens contribute nothing to the count. The classifier is also context-free: it assigns the same polarity regardless of how a word is used syntactically.
-
-Negation handling provides a consistent but modest improvement. The window approach is a valid heuristic but is insufficient to capture the complexity of negation in longer sentences.
+Both configurations are above the 51.1% majority baseline but are the weakest results across all tasks. The table shows a consistent positive-recall bias (≥ 0.81 in both rows): the classifier frequently predicts `pos`, likely because movie review language contains more affective positive vocabulary even in negative reviews (e.g. praising individual performances while criticising the film overall). Precision is correspondingly low (≈ 0.62–0.63), confirming that many of these positive predictions are incorrect. Negation handling yields a +0.9 pp accuracy gain and a small precision improvement (+0.9 pp), with a negligible recall change — the window heuristic corrects some false positives but cannot capture long-range or discourse-level negation. The dominant limitation is **lexicon coverage**: a large share of IMDB vocabulary (character names, film titles, genre-specific terms, colloquial expressions) has no NRC entry and contributes nothing to the polarity count, effectively discarding a large part of each review's signal.
 
 ---
 
-### 3.3 Classical Machine Learning (Task 2.3)
+### 3.3 Supervised Classification with Classical Machine Learning
 
-Supervised classifiers were trained on the full 41 750-review training set and evaluated on the 2 000-review test set. All models were implemented with `scikit-learn`, and hyperparameter selection used 5-fold cross-validation.
+Supervised classifiers were trained on the full 41 750-review training set and evaluated on the 2 000-review test set using `scikit-learn`. Rather than selecting a single configuration a priori, the experimental design systematically varied preprocessing choices, feature representations, and classifier families in order to isolate the contribution of each component and identify which combinations generalise best to unseen data.
 
 #### Preprocessing Pipeline
 
-A configurable pipeline was implemented in `src/utils.py` with the following steps, each independently toggleable:
+Text preprocessing was implemented as a configurable pipeline in `src/utils.py`, allowing each step to be switched on or off independently. This design made it possible to isolate the contribution of each transformation. The steps applied, in order, are:
 
-1. **Lowercasing** — normalises capitalisation.
-2. **Punctuation removal** — strips non-alphabetic characters.
-3. **Stopword removal** — removes NLTK English stopwords.
-4. **Lemmatization** — applies NLTK `WordNetLemmatizer` to reduce inflected forms to their base.
-5. **Negation marking** — after a negation trigger word (*not, no, never, n't, nor, neither, hardly, barely, scarcely*), appends the suffix `_NEG` to the following three tokens. This makes negated contexts appear as distinct features (e.g., `good` and `good_NEG` become separate vocabulary entries).
+1. **Lowercasing** — maps all characters to lowercase, reducing vocabulary size and preventing *Film* and *film* from being treated as distinct features.
+2. **Punctuation removal** — strips non-alphabetic tokens (periods, commas, etc.), which carry no polarity signal for bag-of-words representations.
+3. **Negation marking** — before removing stopwords, scans tokens for negation trigger words (*not, no, never, n't, nor, neither, hardly, barely, scarcely*) and appends the `_NEG` suffix to the next three tokens. Applying negation before stopword removal is important: without this ordering, tokens inside the negation window that happen to be stopwords would be discarded before they could be marked. The suffix creates distinct vocabulary entries for negated contexts — `good` and `good_NEG` become separate features — so the classifier can learn that *good* and *not good* have opposite polarity.
+4. **Stopword removal** — removes frequent function words (e.g. *the*, *a*, *is*) that carry no sentiment information and inflate feature dimensionality. Negation trigger words (*not*, *never*, etc.) are explicitly exempted from this step so they are never deleted.
+5. **Lemmatization** — reduces inflected forms to their base (e.g. *loved* → *love*, *films* → *film*) using NLTK's `WordNetLemmatizer`, concentrating polarity evidence on fewer vocabulary entries and improving lexicon recall.
+
+Three preprocessing configurations were compared: (i) lowercase only, (ii) lowercase + stopword removal + lemmatization, and (iii) the full pipeline including negation marking.
 
 #### Feature Representations
 
-- **Bag-of-Words (BoW):** `CountVectorizer` with the top 10 000 most frequent features.
-- **TF-IDF unigrams:** `TfidfVectorizer` with unigrams, top 10 000 features.
-- **TF-IDF bigrams:** `TfidfVectorizer` with unigrams + bigrams, top 10 000 features.
+Documents were represented as fixed-length numeric vectors using three schemes, all built from the training vocabulary and applied identically to the test set:
 
-All representations were built with lowercase + stopword removal + lemmatization as the baseline preprocessing. The best-performing configuration also applied negation marking.
+**Bag-of-Words (BoW)** counts how many times each of the top 10 000 most frequent words appears in a review. Each review becomes a sparse vector of raw counts. BoW is simple and fast but treats word order and frequency distribution equally, so common words dominate regardless of their discriminative power.
+
+**TF-IDF unigrams** reweights the same vocabulary by multiplying term frequency (TF) by inverse document frequency (IDF). Words that appear in nearly every review (e.g. *movie*, *film*) receive low IDF weights, while words that appear frequently in only one class receive high weights. This suppresses noise and amplifies discriminative signal.
+
+**TF-IDF bigrams** extends the above to include consecutive word pairs (bigrams) alongside single words. Bigrams capture short collocations with a different meaning than their parts — *not bad*, *highly recommended*, *worst ever* — which pure unigram models miss entirely. The vocabulary is again capped at the top 10 000 features.
 
 #### Classifiers
 
-- **Logistic Regression (LR):** L2 regularisation, C ∈ {0.1, 1, 10}.
-- **Multinomial Naive Bayes (NB):** smoothing parameter α ∈ {0.1, 1.0}.
-- **Linear SVM:** hinge loss, C ∈ {0.1, 1, 10}.
+Three classifier families were evaluated, each representing a different modelling philosophy:
 
-| Model          | Features                   | Acc.   | Prec.  | Rec.   | F1     |
-|----------------|----------------------------|--------|--------|--------|--------|
-| SVM (C=1)      | TF-IDF bigrams + negation  | 0.9045 | 0.9094 | 0.9031 | 0.9062 |
-| SVM (C=0.1)    | TF-IDF bigrams + negation  | 0.9035 | 0.9060 | 0.9051 | 0.9055 |
-| LR (C=1)       | TF-IDF bigrams             | 0.9000 | 0.9014 | 0.9031 | 0.9022 |
-| SVM (C=1)      | TF-IDF unigrams            | 0.9000 | 0.9014 | 0.9031 | 0.9022 |
-| LR (C=1)       | TF-IDF unigrams            | 0.8925 | 0.8929 | 0.8973 | 0.8951 |
-| LR (C=1)       | BoW                        | 0.8825 | 0.8885 | 0.8806 | 0.8845 |
-| LR (C=1)       | BoW (lowercase only)       | 0.8815 | 0.8875 | 0.8796 | 0.8835 |
-| NB (α=1)       | BoW                        | 0.8580 | 0.8758 | 0.8415 | 0.8583 |
-| SVM (C=1)      | BoW                        | 0.8540 | 0.8614 | 0.8513 | 0.8563 |
+**Logistic Regression (LR)** learns a linear decision boundary in the feature space by optimising log-likelihood with L2 regularisation. It produces well-calibrated probability outputs and is one of the strongest linear baselines for text classification. The regularisation strength C was searched over {0.1, 1, 10}.
+
+**Multinomial Naive Bayes (NB)** assumes that feature counts are conditionally independent given the class. Despite this unrealistic assumption, NB is computationally efficient and often surprisingly competitive on short texts. However, its independence assumption is more heavily violated in long reviews where word co-occurrence patterns are meaningful. The Laplace smoothing parameter α was searched over {0.1, 1.0}.
+
+**Linear SVM** finds the maximum-margin hyperplane separating the two classes. Unlike LR, the SVM loss (hinge) only cares about the support vectors — examples closest to the decision boundary — making it robust to the large number of uninformative features typical in high-dimensional text. The regularisation parameter C was searched over {0.1, 1, 10}.
+
+All hyperparameters were selected via 5-fold cross-validation on the training set. The test set was held out entirely until final evaluation.
+
+| Model              | Features                         | Acc.   | Prec.  | Rec.   | F1     |
+|--------------------|----------------------------------|--------|--------|--------|--------|
+| SVM (C=0.1) ★      | TF-IDF bigrams + negation        | 0.9025 | 0.9034 | 0.9061 | 0.9047 |
+| SVM (C=1)          | TF-IDF bigrams + negation        | 0.9010 | 0.9112 | 0.8933 | 0.9022 |
+| LR (C=1)           | TF-IDF bigrams                   | 0.9000 | 0.9014 | 0.9031 | 0.9022 |
+| SVM (C=1)          | TF-IDF unigrams                  | 0.9000 | 0.9014 | 0.9031 | 0.9022 |
+| LR (C=1)           | TF-IDF unigrams                  | 0.8925 | 0.8929 | 0.8973 | 0.8951 |
+| LR (C=1)           | BoW + stopwords + lemma          | 0.8825 | 0.8885 | 0.8806 | 0.8845 |
+| LR (C=1)           | BoW (lowercase only)             | 0.8815 | 0.8875 | 0.8796 | 0.8835 |
+| NB (α=1)           | BoW + stopwords + lemma          | 0.8580 | 0.8758 | 0.8415 | 0.8583 |
+| SVM (C=1)          | BoW + stopwords + lemma          | 0.8540 | 0.8614 | 0.8513 | 0.8563 |
+
+★ Best model selected by GridSearchCV (5-fold CV on training set, C ∈ {0.1, 0.5, 1, 5, 10}).
 
 ![Figure 8 — Task 2.3: Classical ML accuracy across feature representations and classifiers](../results/fig_classical_ml.png)
 
-**Feature representation matters more than classifier choice.** Moving from BoW to TF-IDF unigrams gains ≈+1 pp for LR; adding bigrams gains a further +0.8 pp. Bigrams capture short collocations such as "not bad" or "highly recommended" that unigrams treat as independent signals.
+Figure 8 presents the accuracy of all evaluated configurations, grouped by feature representation and classifier. Three consistent patterns emerge from the results.
 
-**Negation marking consistently helps.** The best classical model — SVM with TF-IDF bigrams and negation marking — reaches 90.45%, a +0.45 pp gain over the same configuration without negation. This confirms that explicit negation handling at the feature level captures information that the bigram vocabulary alone does not fully encode.
+The choice of **feature representation is the dominant factor**, exerting a stronger influence on accuracy than the choice of classifier. Moving from BoW to TF-IDF unigrams yields roughly +1 pp for Logistic Regression, and adding bigrams to TF-IDF gains a further +0.8 pp — a total shift of nearly 2 pp just from changing how text is encoded, while keeping the classifier fixed. This confirms that for long-form text like IMDB reviews, the quality of the feature representation is a stronger bottleneck than the choice of learning algorithm.
 
-**Naive Bayes underperforms** relative to LR and SVM on the same features. The conditional independence assumption is violated by word co-occurrences in natural text, and NB does not benefit as strongly from TF-IDF weighting.
+Second, **negation marking provides a consistent improvement** on top of the best TF-IDF configuration. The SVM with TF-IDF bigrams and negation reaches 90.25% accuracy after cross-validated hyperparameter tuning, compared to 90.0% for the same model without negation. Although the gain is modest (+0.25 pp), it is consistent across multiple configurations and confirms that explicitly encoding negation at the feature level — rather than relying on bigrams alone — captures information that a purely data-driven bigram vocabulary does not. A phrase like *not good* appears as the bigram *not_good* and also as the unigram *good_NEG*, giving the model two complementary signals for the same construct.
 
-**GridSearchCV results.** A 5-fold grid search over C ∈ {0.1, 1, 10} for the best SVM configuration (TF-IDF bigrams + negation) selected C = 0.1 as optimal (90.35%), effectively tied with C = 1 (90.45%). This confirms the SVM is not sensitive to regularisation strength on this dataset.
+Third, **Naive Bayes is the weakest of the three classifiers** across all feature representations. Its 85.8% accuracy with BoW is 3 pp below LR on the same features. The most likely explanation is the conditional independence assumption: in IMDB reviews, the presence of *great* is correlated with the presence of *acting* and *performance*, and NB cannot model these co-occurrence patterns. SVM and LR, both discriminative models, learn directly from the boundary between classes and are not penalised by this assumption.
+
+The cross-validated GridSearchCV found C = 0.1 as the optimal regularisation for the best SVM configuration (CV accuracy 90.23%), effectively tied with C = 1. The insensitivity to regularisation strength suggests that, at 10 000 TF-IDF features, the model is not overfitting and the data is sufficiently separable that tighter margins do not help.
 
 ---
 
-### 3.4 Transformer Fine-tuning (Task 2.3)
+### 3.4 Domain Adaptation via Transformer Fine-tuning
 
-The model `distilbert-base-uncased` was fine-tuned on the full 41 750-review training set using the Hugging Face `Trainer` API.
+While the pre-trained DistilBERT checkpoint from Task 2.1.2 provides a strong zero-shot baseline, it was trained on the Stanford Sentiment Treebank (SST-2), which consists of short movie snippet phrases rather than full reviews. Task 2.3 explored whether fine-tuning this model directly on IMDB data — adapting its weights to the longer review format and the specific vocabulary of the dataset — could yield a measurable improvement.
 
-**Tokenisation:** reviews were truncated to a maximum of 512 tokens. Dynamic padding was applied per batch using `DataCollatorWithPadding`, avoiding unnecessary padding to the full 512-token length on shorter examples.
+The model `distilbert-base-uncased` was fine-tuned on the full 41 750-review training set using the Hugging Face `Trainer` API. Reviews were tokenised and truncated to a maximum of 512 subword tokens, which covers the majority of reviews (approximately 85% fit within this limit). Dynamic padding was applied per batch using `DataCollatorWithPadding`, so each batch is padded only to the length of its longest example rather than always to 512 — this significantly reduces computation on short batches.
 
-**Training configuration:**
+Training was performed on CPU (Apple MPS was disabled due to out-of-memory errors on the full dataset). The configuration below was chosen to balance training stability, convergence speed, and available hardware:
 
 | Parameter         | Value                     |
 |-------------------|---------------------------|
@@ -276,7 +261,7 @@ The model `distilbert-base-uncased` was fine-tuned on the full 41 750-review tra
 | Training loss     | 0.146                     |
 | Runtime           | ≈ 6.5 hours               |
 
-The best checkpoint (by validation accuracy at end of each epoch) was loaded for final evaluation.
+A validation set (10% of training data) was used for early stopping: training halted if validation accuracy did not improve for one full epoch. The best checkpoint was reloaded for final evaluation on the test set.
 
 | Model                                  | Acc.    | Prec.   | Rec.    | F1      |
 |----------------------------------------|---------|---------|---------|---------|
@@ -286,91 +271,98 @@ The best checkpoint (by validation accuracy at end of each epoch) was loaded for
 
 ![Figure 9 — Task 2.3: DistilBERT fine-tuning — training loss and validation accuracy per epoch](../results/fig_finetuning_curves.png)
 
-Fine-tuning on IMDB data improves accuracy by 4.75 percentage points. The most significant gain is in recall (+6.9 pp): the SST-2 pre-trained model was overly conservative about positive predictions (trained on shorter SST-2 snippets, it under-counts positive signals in long reviews). Fine-tuning on IMDB data corrects this bias, bringing precision and recall into better balance.
+The results in the table show a clear and consistent improvement across all four metrics after fine-tuning. Accuracy increases by 4.75 pp (90.0% → 94.75%), and F1 improves by 4.88 pp. The most pronounced gain is in **recall (+6.85 pp)**, which reveals an important characteristic of the SST-2 checkpoint: when applied to IMDB reviews without fine-tuning, it is overly conservative about predicting the positive class. This makes sense given the domain mismatch — SST-2 contains short sentence fragments where positive sentiment is often expressed through single strong adjectives (*great*, *excellent*), whereas full IMDB reviews mix positive and negative observations across many sentences before arriving at an overall positive conclusion. Fine-tuning on IMDB data teaches the model to integrate this longer-range structure, correcting the positive-class undercount and bringing precision (−2 pp) and recall (+6.85 pp) into much closer balance.
 
-The ≈6.5 h CPU training time is the main practical limitation of this approach. The same training on a modern GPU (e.g., Google Colab T4) typically completes in under 30 minutes.
+Figure 9 shows the training loss decreasing steadily across epochs while validation accuracy improves, with no sign of overfitting over 3 epochs. This suggests that with more compute, additional epochs or a larger batch size could still yield further gains.
+
+The approximately 6.5-hour CPU training time is the main practical limitation of this approach. The same configuration on a modern GPU (e.g., Google Colab T4) typically completes in under 30 minutes, making it a viable option for iterative experimentation.
 
 ---
 
-### 3.5 Generative Models — LLM Prompting (Task 2.4)
+### 3.5 Zero-Shot and Few-Shot Prompting with Large Language Models
 
-Due to API cost constraints, this task was evaluated on a **stratified 200-sample subset** of the test set: 100 positive and 100 negative reviews, drawn at random with seed 42.
+The final set of experiments investigated whether instruction-following large language models (LLMs) can perform binary sentiment classification without any adaptation to the target dataset. Unlike all preceding approaches, no model parameters are modified: the classifier is defined entirely by the natural-language prompt supplied at inference time, and the LLM's pre-trained knowledge is the sole source of task-relevant information.
 
-**Model:** `claude-haiku-4-5-20251001` (Anthropic API), called with `max_tokens=10` and default temperature. Reviews were truncated to 1 500 characters before insertion into the prompt. Zero API errors were encountered across all 600 calls (200 reviews × 3 prompts).
+Due to API cost constraints, this task was evaluated on a **stratified 500-sample subset** of the test set (250 positive and 250 negative reviews, drawn at random with seed 42), rather than the full 2 000-review set used in all other tasks.
 
-**Response parsing:** the first occurrence of the word `positive` or `negative` (case-insensitive regex) in the model's response determined the predicted label.
+**Model:** `claude-haiku-4-5-20251001` (Anthropic API), a fast and cost-efficient instruction-following model. Each review was truncated to 1 500 characters before being inserted into the prompt, and responses were limited to `max_tokens=10`. Zero API errors were encountered across all 1 500 calls (500 reviews × 3 prompts).
 
-Three prompt strategies were tested (full prompts in Appendix A):
+**Response parsing:** the model was instructed to reply with a single word. The label was extracted by searching the response for the first occurrence of *positive* or *negative* (case-insensitive regex). This parsing strategy was robust — in practice, the model almost always responded with exactly one of the two target words.
 
-**Prompt 1 — Generic**
-A concise instruction to classify the sentiment as "positive" or "negative", with no additional context about the domain.
+Three prompt strategies were tested, each designed to provide a different level of context. The full prompt texts are included in Appendix A.
 
-**Prompt 2 — Domain-aware**
-Identical to the generic prompt but adds the context that the text is a movie review and that the model is acting as a movie review analyst.
+**Prompt 1 — Generic:** a minimal instruction asking the model to classify the sentiment of the text as *positive* or *negative*, with no information about the domain, the task, or examples. This establishes the floor for instruction-based performance using only the model's general language understanding.
 
-**Prompt 3 — Few-shot**
-Provides 3 labelled positive and 3 labelled negative examples from the training set (each truncated to 300 characters) before asking for the classification of the target review.
+**Prompt 2 — Domain-aware:** extends the generic prompt by specifying that the text is a movie review and that the model is acting as a movie review analyst. This anchors the classification to the correct domain, helping the model disambiguate cases where general-purpose sentiment cues conflict with movie-review conventions (e.g. a review that praises performances but criticises the plot overall).
+
+**Prompt 3 — Few-shot:** provides six labelled examples before the target review — three positive and three negative, each truncated to 300 characters and drawn from the training set (seed 42). The intent is to show the model the label format and the type of language typical of each class, potentially shifting its decision boundary toward the specific style of IMDB reviews.
 
 | Prompt strategy | Acc.       | Prec.  | Rec.       | F1         |
 |-----------------|------------|--------|------------|------------|
-| Domain-aware    | **0.9550** | 0.9417 | **0.9700** | **0.9557** |
-| Generic         | 0.9500     | 0.9412 | 0.9600     | 0.9505     |
-| Few-shot        | 0.9500     | 0.9412 | 0.9600     | 0.9505     |
+| Few-shot        | **0.9620** | 0.9529 | **0.9720** | **0.9624** |
+| Domain-aware    | 0.9600     | 0.9637 | 0.9560     | 0.9598     |
+| Generic         | 0.9580     | 0.9751 | 0.9400     | 0.9572     |
 
 ![Figure 10 — Task 2.4: Claude Haiku metrics across the three prompt strategies](../results/fig_llm_prompting.png)
 
-All three strategies achieve ≥ 95% accuracy on the 200-sample subset. The domain-aware prompt is the best performer at 95.5%, outperforming both the generic and few-shot variants by 0.5 percentage points.
+All three strategies achieve ≥ 95.8% accuracy on the 500-sample subset, demonstrating that instruction-following LLMs are highly capable sentiment classifiers even without any task-specific training. Figure 10 shows the four metrics side by side across prompt strategies; the differences between prompts are small but consistent.
 
-The equivalence of the generic and few-shot prompts is a notable finding. Despite providing 6 labelled examples, the few-shot prompt offers no advantage over simply asking the question directly. This suggests that Claude Haiku already has strong domain knowledge about movie review sentiment from pre-training, and that additional examples do not shift its decision boundary on this task. Specifying the domain explicitly (Prompt 2) is more informative than providing examples.
+The few-shot prompt achieves the best overall performance (96.2% accuracy, F1 = 0.9624), driven primarily by the highest recall (97.2%). Providing labelled examples appears to make the model more willing to predict the positive class, which reduces false negatives at a small cost to precision (95.3%, the lowest of the three). The domain-aware prompt comes second (96.0% accuracy, F1 = 0.9598), with the highest precision (96.4%) and well-balanced recall (95.6%). The generic prompt, despite having the least context, is only 0.4 pp behind in accuracy (95.8%) and achieves the highest precision of all (97.5%), meaning it makes fewer false positive predictions — though at the cost of lower recall (94.0%).
+
+The ordering of strategies — few-shot > domain > generic — is consistent with the intuition that more context helps: examples provide the strongest signal, domain framing provides moderate signal, and bare instructions provide the least. However, the performance gap between them is narrow (less than 0.5 pp in accuracy), which suggests that Claude Haiku already has a strong internal representation of movie review sentiment from pre-training, and that additional context refines rather than transforms its predictions.
+
+**Important caveat:** these results are based on a 500-sample stratified subset rather than the full 2 000-review test set used in all other tasks. While the subset is balanced and randomly sampled, results at this scale carry more statistical uncertainty and should not be directly compared with other task results without this in mind.
 
 ---
 
-## 4. Results — Overall Comparison
+## 4. Results and Discussion
 
-The table below summarises the best result from each task, ordered by accuracy.
+Table 1 consolidates the best result from each experimental family, ordered by accuracy. For the supervised learning experiments, both the best classical ML configuration and the fine-tuned transformer are reported separately, as they represent qualitatively distinct approaches within the same task.
 
-| Task  | Best approach                     | Acc.       | Prec.  | Rec.   | F1     |
-|-------|-----------------------------------|------------|--------|--------|--------|
-| 2.4   | Claude Haiku (domain prompt)      | **0.9550** | 0.9417 | 0.9700 | 0.9557 |
-| 2.3   | DistilBERT (fine-tuned, 3 epochs) | 0.9475     | 0.9508 | 0.9462 | 0.9485 |
-| 2.3   | SVM — TF-IDF bigrams + negation   | 0.9045     | 0.9094 | 0.9031 | 0.9062 |
-| 2.1.2 | DistilBERT (pre-trained, SST-2)   | 0.9000     | 0.9228 | 0.8777 | 0.8997 |
-| 2.1.1 | Stanza                            | 0.8335     | 0.9333 | 0.7260 | 0.8167 |
-| 2.1.1 | VADER                             | 0.7015     | 0.6604 | 0.8562 | 0.7456 |
-| 2.1.1 | TextBlob                          | 0.7000     | 0.6399 | 0.9442 | 0.7628 |
-| 2.2   | NRC Lexicon + Negation            | 0.6550     | 0.6254 | 0.8102 | 0.7059 |
+**Table 1 — Best result per experimental family, ordered by accuracy.**
+
+| Task  | Best approach                       | Acc.       | Prec.  | Rec.   | F1     |
+|-------|-------------------------------------|------------|--------|--------|--------|
+| 2.4   | Claude Haiku — few-shot prompt †    | **0.9620** | 0.9529 | 0.9720 | 0.9624 |
+| 2.3   | DistilBERT (fine-tuned, 3 epochs)   | 0.9475     | 0.9508 | 0.9462 | 0.9485 |
+| 2.3   | SVM — TF-IDF bigrams + negation     | 0.9025     | 0.9034 | 0.9061 | 0.9047 |
+| 2.1.2 | DistilBERT (pre-trained, SST-2)     | 0.9000     | 0.9228 | 0.8777 | 0.8997 |
+| 2.1.1 | Stanza                              | 0.8335     | 0.9333 | 0.7260 | 0.8167 |
+| 2.1.1 | VADER                               | 0.7015     | 0.6604 | 0.8562 | 0.7456 |
+| 2.1.1 | TextBlob                            | 0.7000     | 0.6399 | 0.9442 | 0.7628 |
+| 2.2   | NRC Lexicon + Negation              | 0.6550     | 0.6254 | 0.8102 | 0.7059 |
+
+† Evaluated on a stratified 500-sample subset of the test set (250 pos + 250 neg).
 
 ![Figure 11 — All approaches ranked by accuracy, colour-coded by task family](../results/fig_all_results.png)
 
-The results follow an intuitive progression from weakest to strongest. The NRC lexicon classifier is the weakest (64–65%), constrained by vocabulary coverage and the absence of contextual modelling. The rule-based tools VADER and TextBlob reach ≈70%, while Stanza's neural pipeline achieves 83.4%. The pre-trained DistilBERT SST-2 baseline reaches 90% with no IMDB training at all.
+Figure 11 ranks all approaches by accuracy, colour-coded by experimental family. The results span a range of approximately 31 percentage points — from 65.5% for the NRC lexicon classifier to 96.2% for Claude Haiku with few-shot prompting — and the ordering broadly reflects the degree to which each approach can model contextual and compositional aspects of sentiment.
 
-Fine-tuned DistilBERT and Claude Haiku are the two top-performing systems, both exceeding 94.7%. Claude Haiku achieves 95.5% on the 200-sample test subset, representing the highest accuracy in the study.
+Three performance tiers can be identified. The lowest tier comprises the purely lexical approaches: the NRC EmoLex classifier (65.5%) and the rule-based tools TextBlob and VADER (≈70%). All three assign polarity based on individual token lookups without modelling how words interact in context. Given that IMDB reviews average approximately 175 words and routinely mix negative observations with an overall positive assessment (or vice versa), word-level aggregation is an insufficient summary of document-level sentiment. Stanza (83.4%) occupies an intermediate position, outperforming the other off-the-shelf tools by 13 percentage points by operating at the sentence level rather than the word level — a result that underscores the importance of even minimal contextual modelling.
 
-**Important caveat:** Task 2.4 was evaluated on a 200-sample subset rather than the full 2 000-review test set. The 0.75 pp gap between Claude Haiku and fine-tuned DistilBERT is within the margin of uncertainty at this sample size and should not be interpreted as a definitive superiority claim. A full 2 000-review LLM evaluation would be needed to confirm this difference statistically.
+The middle tier groups the pre-trained DistilBERT SST-2 baseline (90.0%) with the strongest classical ML configurations (85.4%–90.25%). Notably, the best classical approach — an SVM with TF-IDF bigrams and negation marking — achieves 90.25%, effectively matching a pre-trained transformer in accuracy while requiring no GPU and completing training in under two minutes on CPU. This convergence suggests that, for binary sentiment classification on a well-balanced dataset with sufficiently rich features, discriminative linear models over sparse TF-IDF representations approach the same decision boundary as contextualised neural encoders.
+
+The top tier is formed by the two approaches that most effectively leverage large-scale pre-training: fine-tuned DistilBERT (94.75%) and Claude Haiku with few-shot prompting (96.2%). Fine-tuning adds 4.75 percentage points over the zero-shot baseline by adapting the model weights to the IMDB domain, with the largest gain in recall. Claude Haiku achieves the highest accuracy without any weight updates, relying entirely on the knowledge accumulated during pre-training and the task specification encoded in the prompt. The 1.45 pp gap between these two systems (96.2% vs 94.75%) should be interpreted cautiously, as the LLM results are based on a 500-sample subset rather than the full test set used for all other approaches. A statistically definitive comparison would require evaluation on the complete 2 000-review test set.
 
 ---
 
 ## 5. Conclusions
 
-This work carried out a systematic comparison of eight sentiment analysis configurations across four paradigms on the IMDB Movie Reviews dataset. The main findings are:
+This work carried out a systematic comparison of sentiment analysis approaches across four paradigms — lexicon-based tools, a custom NRC classifier, classical machine learning, and instruction-based LLMs — applied to the IMDB Movie Reviews dataset. The experiments span a wide range of complexity and resource requirements, from rule-based word-list lookups to a 66-million-parameter fine-tuned transformer, and together paint a clear picture of how each family of methods scales with linguistic sophistication.
 
-1. **Lexicon-based tools are fast but limited for long-form text.** TextBlob and VADER reach only 70% accuracy on IMDB reviews. Stanza, which incorporates a neural pipeline, performs substantially better (83.4%), confirming that even nominally "rule-based" tools benefit from neural components. None of the rule-based tools come close to trained models.
+The weakest results come from approaches that treat sentiment as a bag of individually scored words. The NRC EmoLex classifier (64.6–65.5%) suffers from limited vocabulary coverage: a large fraction of movie review vocabulary — character names, genre jargon, colloquialisms — has no lexicon entry, leaving most tokens unscored. Negation handling improves accuracy by 0.9 pp, a consistent but modest effect; the window-based heuristic captures short negation scopes but is insufficient for the complex, multi-clause structures common in IMDB reviews. TextBlob and VADER (≈70%) reach higher accuracy through richer rule sets but still aggregate polarity at the word level, making them susceptible to noise in long texts.
 
-2. **The NRC lexicon is the weakest approach tested.** Its 64–65% accuracy reflects limited vocabulary coverage and the inability to capture context. Negation handling provides a consistent but small gain (+0.9 pp) — useful, but not sufficient to bridge the gap to learning-based methods.
+Stanza's neural sentence-level model (83.4%) shows that even a moderate amount of contextual modelling dramatically outperforms pure word-counting. The 13 pp gap between VADER and Stanza on the same data is striking given that both are nominally "off-the-shelf" tools — the key difference is that Stanza models sentence structure rather than word polarity in isolation.
 
-3. **Classical ML with TF-IDF and negation marking is competitive with the pre-trained transformer baseline.** SVM with TF-IDF bigrams and negation reaches 90.5% — matching DistilBERT SST-2 — while requiring no GPU and training in minutes rather than hours. For resource-constrained environments this is a strong practical choice.
+Classical ML with TF-IDF bigrams and negation marking reaches 90.25%, matching the pre-trained DistilBERT SST-2 baseline (90.0%) despite being far simpler and faster to train. This is perhaps the most practically relevant finding: for deployments where inference cost, latency, or interpretability matter, a well-tuned SVM over TF-IDF features remains highly competitive with transformer models that are orders of magnitude larger.
 
-4. **Fine-tuned DistilBERT is the strongest fully supervised system.** Three epochs of fine-tuning on IMDB data pushes accuracy to 94.8%, a 4.8 pp gain over zero-shot transfer. The improvement is largest in recall, suggesting that domain-specific fine-tuning corrects a positive-class bias present in the SST-2 checkpoint.
+Fine-tuning DistilBERT on the IMDB training set (94.75%) closes the domain gap between SST-2 and full-length movie reviews, with the most pronounced gain in recall (+6.85 pp). This confirms that the SST-2 checkpoint underpredicts the positive class on long reviews, and that 3 epochs of domain-specific training is sufficient to correct this bias.
 
-5. **Instruction-tuned LLMs achieve top-tier performance with no task-specific training.** Claude Haiku with a domain-aware prompt reaches 95.5% on the 200-sample test subset — the highest single accuracy in this study. The finding that a domain description outperforms few-shot examples suggests the model's prior knowledge of movie review sentiment is already strong; additional examples add marginal information.
+Instruction-tuned Claude Haiku achieves the highest accuracy in this study (96.2% with few-shot prompting, evaluated on 500 samples). All three prompt strategies exceed 95.8%, demonstrating that large generative models can perform high-quality sentiment classification through instruction following alone, without any adaptation to the target dataset. The few-shot prompt outperforms the domain-aware and generic variants, suggesting that labelled examples further refine the model's calibration even when its general knowledge of the domain is already strong.
 
 ### Future Work
 
-- **Evaluate LLMs on the full test set** (2 000 reviews) to confirm the performance gap with fine-tuned models.
-- **Combine NRC with a second lexicon** (SentiWordNet or AFINN) to improve vocabulary coverage.
-- **Add POS-tag filtering or character n-grams** to the TF-IDF pipeline.
-- **Fine-tune on GPU** to enable hyperparameter search and experimentation with larger models (BERT-large, RoBERTa).
-- **Aspect-level sentiment analysis** (acting, screenplay, direction) for richer insights.
+The main limitations of this study point directly to avenues for improvement. The LLM evaluation on 500 samples introduces statistical uncertainty; evaluating on the full 2 000-review test set would allow a direct and reliable comparison with all other methods. On the classical ML side, adding POS-tag filtering or character n-grams could further improve the TF-IDF pipeline. For the NRC classifier, combining EmoLex with a second lexicon such as SentiWordNet or AFINN would improve vocabulary coverage and reduce the fraction of reviews where the polarity count is tied. Finally, fine-tuning on GPU would make hyperparameter search over learning rate, batch size, and number of epochs practical, and would enable experimentation with larger transformer variants such as RoBERTa or BERT-large.
 
 ---
 

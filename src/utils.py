@@ -15,7 +15,6 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
 RESULTS_CSV = ROOT / "results" / "all_results.csv"
-NRC_LEXICON_PATH = ROOT / "docs" / "Text-Mining-main" / "data" / "NRC-lexicon.csv"
 
 _RESULTS_HEADER = ["task", "approach", "preprocessing", "accuracy", "precision", "recall", "f1", "notes"]
 
@@ -32,17 +31,15 @@ def load_data(split: str = "test") -> tuple[list[str], list[str]]:
 
 
 def load_nrc_lexicon() -> dict[str, dict[str, int]]:
-    """Load NRC lexicon. Returns {word: {'positive': int, 'negative': int}}."""
-    df = pd.read_csv(NRC_LEXICON_PATH)
-    df.columns = [c.strip() for c in df.columns]
-    lexicon = {}
-    for _, row in df.iterrows():
-        word = str(row["English"]).strip().lower()
-        lexicon[word] = {
-            "positive": int(row["Positive"]),
-            "negative": int(row["Negative"]),
-        }
-    return lexicon
+    """Load NRC lexicon via the nrclex package. Returns {word: {'positive': int, 'negative': int}}."""
+    import json, importlib.resources as pkg
+    nrclex_data = Path(pkg.files("nrclex") / "data" / "nrc_en.json")
+    with nrclex_data.open(encoding="utf-8") as f:
+        raw = json.load(f)
+    return {
+        word: {"positive": int("positive" in emotions), "negative": int("negative" in emotions)}
+        for word, emotions in raw.items()
+    }
 
 # ---------------------------------------------------------------------------
 # Evaluation
@@ -144,17 +141,17 @@ def preprocess_text(
     if remove_punctuation:
         tokens = [t for t in tokens if t not in string.punctuation]
 
+    if handle_negation:
+        tokens = _apply_negation(tokens)
+
     if remove_stopwords:
         stop = sw.words("english")
-        # keep negation words even when removing stopwords
-        tokens = [t for t in tokens if t not in stop or t in _NEGATION_WORDS]
+        # keep negation words and already-marked _NEG tokens
+        tokens = [t for t in tokens if t not in stop or t in _NEGATION_WORDS or t.endswith("_NEG")]
 
     if lemmatize:
         lemmatizer = WordNetLemmatizer()
         tokens = [lemmatizer.lemmatize(t) for t in tokens]
-
-    if handle_negation:
-        tokens = _apply_negation(tokens)
 
     return " ".join(tokens)
 
