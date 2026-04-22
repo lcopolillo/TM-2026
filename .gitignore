@@ -7,4 +7,8 @@ __pycache__/
 .DS_Store
 CLAUDE.md
 docs/Trabalho.pdf
-
+data/en-sentiment
+data/en-topics
+data/pt
+data/pt-sentiment
+data/en/SMSSpamCollection.txt

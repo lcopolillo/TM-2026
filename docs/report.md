@@ -42,15 +42,16 @@ The results demonstrate that instruction-based LLMs, without any task-specific t
   - [Abstract](#abstract)
   - [Table of Contents](#table-of-contents)
   - [1. Introduction](#1-introduction)
-  - [2. Data](#2-data)
-  - [3. Methodology](#3-methodology)
-    - [3.1 Baseline Evaluation: Off-the-shelf Sentiment Analysis Tools](#31-baseline-evaluation-off-the-shelf-sentiment-analysis-tools)
-    - [3.2 Lexicon-Based Classification with NRC EmoLex](#32-lexicon-based-classification-with-nrc-emolex)
-    - [3.3 Supervised Classification with Classical Machine Learning](#33-supervised-classification-with-classical-machine-learning)
-    - [3.4 Domain Adaptation via Transformer Fine-tuning](#34-domain-adaptation-via-transformer-fine-tuning)
-    - [3.5 Zero-Shot and Few-Shot Prompting with Large Language Models](#35-zero-shot-and-few-shot-prompting-with-large-language-models)
-  - [4. Results and Discussion](#4-results-and-discussion)
-  - [5. Conclusions](#5-conclusions)
+  - [2. Related Work](#2-related-work)
+  - [3. Data](#3-data)
+  - [4. Methodology](#4-methodology)
+    - [4.1 Baseline Evaluation: Off-the-shelf Sentiment Analysis Tools](#41-baseline-evaluation-off-the-shelf-sentiment-analysis-tools)
+    - [4.2 Lexicon-Based Classification with NRC EmoLex](#42-lexicon-based-classification-with-nrc-emolex)
+    - [4.3 Supervised Classification with Classical Machine Learning](#43-supervised-classification-with-classical-machine-learning)
+    - [4.4 Domain Adaptation via Transformer Fine-tuning](#44-domain-adaptation-via-transformer-fine-tuning)
+    - [4.5 Zero-Shot and Few-Shot Prompting with Large Language Models](#45-zero-shot-and-few-shot-prompting-with-large-language-models)
+  - [5. Results and Discussion](#5-results-and-discussion)
+  - [6. Conclusions](#6-conclusions)
   - [Appendix A — Prompt Definitions](#appendix-a--prompt-definitions)
     - [Prompt 1 — Generic](#prompt-1--generic)
     - [Prompt 2 — Domain-aware](#prompt-2--domain-aware)
@@ -64,13 +65,13 @@ The results demonstrate that instruction-based LLMs, without any task-specific t
 - [Figure 2 — Token count distribution by class (train set)](#2-data)
 - [Figure 3 — Top 20 words by class (train set, stopwords removed)](#2-data)
 - [Figure 4 — Word clouds — positive and negative reviews](#2-data)
-- [Figure 5 — Accuracy and F1 comparison across baseline tools](#31-baseline-evaluation-off-the-shelf-sentiment-analysis-tools)
-- [Figure 6 — DistilBERT pre-trained (SST-2): confidence distribution on test set](#31-baseline-evaluation-off-the-shelf-sentiment-analysis-tools)
-- [Figure 7 — NRC lexicon classifier results with and without negation handling](#32-lexicon-based-classification-with-nrc-emolex)
-- [Figure 8 — Classical ML accuracy across feature representations and classifiers](#33-supervised-classification-with-classical-machine-learning)
-- [Figure 9 — DistilBERT fine-tuning — training loss and validation accuracy per epoch](#34-domain-adaptation-via-transformer-fine-tuning)
-- [Figure 10 — Claude Haiku metrics across the three prompt strategies](#35-zero-shot-and-few-shot-prompting-with-large-language-models)
-- [Figure 11 — All approaches ranked by accuracy, colour-coded by task family](#4-results-and-discussion)
+- [Figure 5 — Accuracy and F1 comparison across baseline tools](#41-baseline-evaluation-off-the-shelf-sentiment-analysis-tools)
+- [Figure 6 — DistilBERT pre-trained (SST-2): confidence distribution on test set](#41-baseline-evaluation-off-the-shelf-sentiment-analysis-tools)
+- [Figure 7 — NRC lexicon classifier results with and without negation handling](#42-lexicon-based-classification-with-nrc-emolex)
+- [Figure 8 — Classical ML accuracy across feature representations and classifiers](#43-supervised-classification-with-classical-machine-learning)
+- [Figure 9 — DistilBERT fine-tuning — training loss and validation accuracy per epoch](#44-domain-adaptation-via-transformer-fine-tuning)
+- [Figure 10 — Claude Haiku metrics across the three prompt strategies](#45-zero-shot-and-few-shot-prompting-with-large-language-models)
+- [Figure 11 — All approaches ranked by accuracy, colour-coded by task family](#5-results-and-discussion)
 
 ---
 
@@ -91,7 +92,13 @@ All experiments were implemented in Python and tracked in `results/all_results.c
 
 ---
 
-## 2. Data
+## 2. Related Work
+
+*(To be completed — include ≥ 6 articles covering: sentiment lexicons, VADER/TextBlob, IMDB benchmark, DistilBERT/BERT, classical ML for sentiment, and few-shot LLM prompting.)*
+
+---
+
+## 3. Data
 
 The **IMDB Movie Reviews** dataset was distributed as two CSV files — one for training and one for testing — each containing a `text` column (the review) and a `label` column (`pos` or `neg`).
 
@@ -123,9 +130,9 @@ This length has direct consequences for each method:
 
 ---
 
-## 3. Methodology
+## 4. Methodology
 
-### 3.1 Baseline Evaluation: Off-the-shelf Sentiment Analysis Tools
+### 4.1 Baseline Evaluation: Off-the-shelf Sentiment Analysis Tools
 
 As a first step, a set of pre-existing tools was applied directly to the test set without any task-specific training or parameter adjustment. These experiments serve as a reference baseline, establishing the upper bound of what off-the-shelf methods can achieve and providing a point of comparison for all subsequent approaches.
 
@@ -154,7 +161,7 @@ Figure 5 summarises accuracy and F1 across the four baseline tools. The contrast
 
 ---
 
-### 3.2 Lexicon-Based Classification with NRC EmoLex
+### 4.2 Lexicon-Based Classification with NRC EmoLex
 
 The NRC Word-Emotion Association Lexicon (EmoLex) associates 14 182 English words with binary flags for positive and negative polarity, plus eight emotion categories (anger, anticipation, disgust, fear, joy, sadness, surprise, trust). For this task only the `Positive` and `Negative` columns were used.
 
@@ -175,7 +182,7 @@ Both configurations are above the 51.1% majority baseline but are the weakest re
 
 ---
 
-### 3.3 Supervised Classification with Classical Machine Learning
+### 4.3 Supervised Classification with Classical Machine Learning
 
 Supervised classifiers were trained on the full 41 750-review training set and evaluated on the 2 000-review test set using `scikit-learn`. Rather than selecting a single configuration a priori, the experimental design systematically varied preprocessing choices, feature representations, and classifier families in order to isolate the contribution of each component and identify which combinations generalise best to unseen data.
 
@@ -241,7 +248,7 @@ The cross-validated GridSearchCV found C = 0.1 as the optimal regularisation for
 
 ---
 
-### 3.4 Domain Adaptation via Transformer Fine-tuning
+### 4.4 Domain Adaptation via Transformer Fine-tuning
 
 While the pre-trained DistilBERT checkpoint from Task 2.1.2 provides a strong zero-shot baseline, it was trained on the Stanford Sentiment Treebank (SST-2), which consists of short movie snippet phrases rather than full reviews. Task 2.3 explored whether fine-tuning this model directly on IMDB data — adapting its weights to the longer review format and the specific vocabulary of the dataset — could yield a measurable improvement.
 
@@ -279,7 +286,7 @@ The approximately 6.5-hour CPU training time is the main practical limitation of
 
 ---
 
-### 3.5 Zero-Shot and Few-Shot Prompting with Large Language Models
+### 4.5 Zero-Shot and Few-Shot Prompting with Large Language Models
 
 The final set of experiments investigated whether instruction-following large language models (LLMs) can perform binary sentiment classification without any adaptation to the target dataset. Unlike all preceding approaches, no model parameters are modified: the classifier is defined entirely by the natural-language prompt supplied at inference time, and the LLM's pre-trained knowledge is the sole source of task-relevant information.
 
@@ -315,7 +322,7 @@ The ordering of strategies — few-shot > domain > generic — is consistent wit
 
 ---
 
-## 4. Results and Discussion
+## 5. Results and Discussion
 
 Table 1 consolidates the best result from each experimental family, ordered by accuracy. For the supervised learning experiments, both the best classical ML configuration and the fine-tuned transformer are reported separately, as they represent qualitatively distinct approaches within the same task.
 
@@ -346,7 +353,7 @@ The top tier is formed by the two approaches that most effectively leverage larg
 
 ---
 
-## 5. Conclusions
+## 6. Conclusions
 
 This work carried out a systematic comparison of sentiment analysis approaches across four paradigms — lexicon-based tools, a custom NRC classifier, classical machine learning, and instruction-based LLMs — applied to the IMDB Movie Reviews dataset. The experiments span a wide range of complexity and resource requirements, from rule-based word-list lookups to a 66-million-parameter fine-tuned transformer, and together paint a clear picture of how each family of methods scales with linguistic sophistication.
 

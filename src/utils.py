@@ -30,15 +30,14 @@ def load_data(split: str = "test") -> tuple[list[str], list[str]]:
     return df["text"].tolist(), df["label"].tolist()
 
 
+NRC_LEXICON_PATH = ROOT / "data" / "en" / "NCR-lexicon.csv"
+
 def load_nrc_lexicon() -> dict[str, dict[str, int]]:
-    """Load NRC lexicon via the nrclex package. Returns {word: {'positive': int, 'negative': int}}."""
-    import json, importlib.resources as pkg
-    nrclex_data = Path(pkg.files("nrclex") / "data" / "nrc_en.json")
-    with nrclex_data.open(encoding="utf-8") as f:
-        raw = json.load(f)
+    """Load NRC lexicon from data/en/NCR-lexicon.csv. Returns {word: {'positive': int, 'negative': int}}."""
+    df = pd.read_csv(NRC_LEXICON_PATH, usecols=["English", "Positive", "Negative"])
     return {
-        word: {"positive": int("positive" in emotions), "negative": int("negative" in emotions)}
-        for word, emotions in raw.items()
+        row["English"]: {"positive": int(row["Positive"]), "negative": int(row["Negative"])}
+        for _, row in df.iterrows()
     }
 
 # ---------------------------------------------------------------------------

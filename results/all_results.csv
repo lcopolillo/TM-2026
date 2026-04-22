@@ -57,3 +57,7 @@ task,approach,preprocessing,accuracy,precision,recall,f1,notes
 2.4,Claude Haiku (claude-haiku-4-5-20251001) — domain prompt,"500-sample stratified subset (250 pos + 250 neg), truncated to 1500 chars",0.96,0.9637,0.956,0.9598,"Model: claude-haiku-4-5-20251001, max_tokens=10, temperature=default"
 2.4,Claude Haiku (claude-haiku-4-5-20251001) — generic prompt,"full 2000-sample test set, truncated to 1500 chars",0.959,0.9681,0.9511,0.9595,"Model: claude-haiku-4-5-20251001, max_tokens=10, temperature=default"
 2.4,Claude Haiku (claude-haiku-4-5-20251001) — few_shot prompt,"500-sample stratified subset (250 pos + 250 neg), truncated to 1500 chars",0.962,0.9529,0.972,0.9624,"Model: claude-haiku-4-5-20251001, max_tokens=10, temperature=default"
+2.2,NRC Lexicon,"lowercase, lemmatization, no negation",0.646,0.616,0.816,0.702,tie-break → neg
+2.2,NRC Lexicon + Negation,"lowercase, lemmatization, negation window=3",0.655,0.6254,0.8102,0.7059,polarity flipped for tokens within 3 positions after negation word
+2.2,NRC Lexicon,"lowercase, lemmatization, no negation",0.646,0.616,0.816,0.702,tie-break → neg
+2.2,NRC Lexicon + Negation,"lowercase, lemmatization, negation window=3",0.655,0.6254,0.8102,0.7059,polarity flipped for tokens within 3 positions after negation word

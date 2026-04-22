@@ -20,7 +20,7 @@ jupyter notebook notebooks/
 Data lives in `docs/input/` (not `data/` as README suggests — `data/` is gitignored):
 - Train: `docs/input/train/imdb_reviews_train.csv` — 21,754 rows, cols: `text`, `label` (pos/neg), `nr_tokens`
 - Test: `docs/input/test/imdb_reviews_test.csv` — 21,996 rows, same columns
-- NRC Lexicon: `docs/Text-Mining-main/data/NRC-lexicon.csv` — cols: `English`, `Positive`, `Negative` + emotion columns
+- NRC Lexicon: `data/en/NCR-lexicon.csv` — cols: `English`, `Positive`, `Negative` + emotion columns (obtain from Moodle)
 - LaTeX report template: `docs/LaTEX_Template_EN.tex` (amsbook class, uses `\chapter` as top level)
 
 ## Architecture
