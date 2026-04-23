@@ -1,0 +1,244 @@
+4. Metodologia
+==============
+
+4.1 Ferramentas de Análise de Sentimento Existentes
+----------------------------------------------------
+
+Nesta secção aplicámos ferramentas já existentes diretamente ao conjunto de teste, sem
+qualquer treino adicional, para obter uma referência de desempenho.
+
+O TextBlob atribui uma pontuação de polaridade a cada palavra e calcula a média para o
+texto todo. Valores acima de zero são classificados como positivos, os restantes como
+negativos. Obteve 70,0% de acurácia. Erra muito ao prever positivo quando não devia
+(precisão baixa de 0,640), porque o seu léxico foi construído a partir de texto geral da
+internet, onde a linguagem positiva aparece mais do que a negativa.
+
+O VADER foi criado para textos curtos de redes sociais. Além do léxico de palavras,
+aplica regras para capitalização, pontuação e advérbios. Obteve 70,2% de acurácia,
+muito semelhante ao TextBlob. O problema é que essas regras foram desenhadas para textos
+curtos e perdem eficácia numa crítica típica do IMDB com cerca de 175 palavras.
+
+O Stanza usa um modelo neural que analisa o sentimento frase a frase, treinado no
+Stanford Sentiment Treebank. A pontuação média das frases é usada para classificar cada
+crítica. Obteve 83,4% de acurácia, uma melhoria de 13 pontos face ao VADER e ao TextBlob.
+Ao analisar o contexto dentro de cada frase em vez de palavras individuais, consegue
+capturar informação que os outros dois perdem.
+
+O DistilBERT pré-treinado (SST-2) foi usado através da API do Hugging Face com o modelo
+distilbert-base-uncased-finetuned-sst-2-english, sem qualquer treino adicional com dados
+do IMDB. As críticas foram truncadas a 512 palavras. Obteve 90,0% de acurácia, o melhor
+resultado entre as ferramentas existentes, mostrando que um transformer pré-treinado
+generaliza bem mesmo para um domínio diferente do que foi treinado.
+
+
+4.2 Classificador com o Léxico NRC EmoLex
+------------------------------------------
+
+O NRC EmoLex é um léxico com 14 182 palavras em inglês classificadas com polaridade
+positiva e negativa. Para cada crítica, contámos quantas palavras são positivas (P) e
+quantas são negativas (N). Se P > N, a crítica é classificada como positiva; caso
+contrário, como negativa. Em empate, atribuímos negativo.
+
+Antes de aplicar o léxico, as críticas foram convertidas para minúsculas e lematizadas
+(por exemplo, "loved" passa a "love"), para aumentar a cobertura do léxico.
+
+Para o tratamento da negação, após palavras como "not", "never" ou "n't", os três tokens
+seguintes têm a sua polaridade invertida. Por exemplo, em "not a good film", a palavra
+"good" passa a contar como negativa. Este processo é feito antes de remover stopwords,
+para que palavras como "not" não sejam eliminadas antes de serem usadas.
+
+Ambas as configurações (com e sem negação) ficam acima dos 51,1% da linha de base de
+maioria, mas são os resultados mais fracos. O classificador tende a prever positivo com
+demasiada frequência (cobertura ≥ 0,81), provavelmente porque até as críticas negativas
+contêm muitas palavras positivas ao descrever o filme. O ganho do tratamento da negação
+é pequeno (+0,9 pp), pois a janela de 3 tokens não consegue capturar negações mais
+complexas. O maior problema é que muitas palavras típicas das críticas de filmes (nomes
+de personagens, termos de género, expressões informais) não estão no léxico NRC, pelo
+que grande parte de cada crítica não contribui para a classificação.
+
+
+4.3 Aprendizagem Automática Clássica
+--------------------------------------
+
+Os classificadores foram treinados com o conjunto de treino completo (41 750 críticas) e
+avaliados no conjunto de teste (2 000 críticas) usando o scikit-learn. Testámos diferentes
+combinações de pré-processamento, representação de texto e classificadores para perceber
+o que mais influencia os resultados.
+
+Pré-processamento
+
+O texto foi processado numa sequência de cinco passos configuráveis:
+
+1. Minúsculas — converte todo o texto para minúsculas, evitando que "Film" e "film"
+   sejam tratados como palavras diferentes.
+
+2. Remoção de pontuação — remove sinais de pontuação, que não têm valor de sentimento.
+
+3. Marcação de negação — antes de remover stopwords, as palavras que aparecem até 3
+   posições depois de "not", "never", "n't", etc. recebem o sufixo _NEG. Assim, "good"
+   e "good_NEG" tornam-se características distintas e o modelo aprende que têm
+   polaridades opostas. É importante fazer este passo antes de remover stopwords, para
+   que palavras como "not" não sejam eliminadas antes de serem usadas.
+
+4. Remoção de stopwords — elimina palavras muito frequentes sem valor de sentimento
+   (como "the", "a", "is"). As palavras de negação ficam sempre excluídas desta remoção.
+
+5. Lematização — reduz as palavras à sua forma base ("loved" → "love", "films" → "film"),
+   diminuindo a duplicação no vocabulário.
+
+Foram testadas três configurações: só minúsculas; minúsculas + stopwords + lematização;
+e o pipeline completo com negação.
+
+Representação do Texto
+
+Cada crítica foi transformada num vetor numérico com três abordagens diferentes, todas
+usando as 10 000 palavras mais frequentes do conjunto de treino:
+
+Bag-of-Words (BoW): conta quantas vezes cada palavra aparece na crítica. É simples mas
+não distingue palavras raras de palavras comuns.
+
+TF-IDF unigramas: dá menos peso a palavras que aparecem em quase todas as críticas
+(como "movie" ou "film") e mais peso às que distinguem uma classe da outra. Reduz o
+ruído e melhora o sinal de sentimento.
+
+TF-IDF bigramas: além de palavras individuais, inclui pares de palavras consecutivas
+como "not bad" ou "highly recommended", que têm um significado diferente de cada palavra
+separada.
+
+Classificadores
+
+Foram testados três classificadores:
+
+Regressão Logística (RL): aprende uma fronteira de separação linear. É rápido,
+interpretável e funciona bem em classificação de texto. O parâmetro C foi testado em
+{0,1, 1, 10}.
+
+Naive Bayes Multinomial (NB): classifica com base nas probabilidades de cada palavra
+por classe, assumindo que as palavras são independentes entre si. É eficiente mas tem
+dificuldade em críticas longas onde as palavras aparecem juntas de forma significativa.
+O parâmetro alpha foi testado em {0,1, 1,0}.
+
+SVM Linear: encontra a fronteira que maximiza a margem entre as duas classes. Funciona
+bem com muitas características e dados de alta dimensão. O parâmetro C foi testado em
+{0,1, 1, 10}.
+
+Todos os hiperparâmetros foram escolhidos por validação cruzada de 5 partições no
+conjunto de treino. O conjunto de teste só foi usado na avaliação final.
+
+Três conclusões principais emergem dos resultados. Primeiro, a representação do texto
+tem mais impacto do que o classificador: passar de BoW para TF-IDF bigramas melhora a
+acurácia em quase 2 pp mesmo mantendo o mesmo classificador. Segundo, a marcação de
+negação acrescenta +0,25 pp ao melhor modelo, confirmando que é útil codificar
+explicitamente a negação. Terceiro, o Naive Bayes é o mais fraco dos três, ficando 3 pp
+abaixo da Regressão Logística com o mesmo tipo de características, o que se explica pela
+sua incapacidade de capturar relações entre palavras.
+
+O melhor modelo foi o SVM com TF-IDF bigramas e negação (C=0,1), selecionado por
+validação cruzada, com 90,25% de acurácia.
+
+
+4.4 Ajuste Fino do DistilBERT
+-------------------------------
+
+O DistilBERT pré-treinado no SST-2 foi treinado com dados de frases curtas, muito
+diferentes das críticas longas do IMDB. Por isso, fizemos o ajuste fino (fine-tuning)
+do modelo com os dados do IMDB para ver se o desempenho melhora.
+
+Usámos o modelo distilbert-base-uncased e treinámos com o conjunto de treino completo
+(41 750 críticas) usando a API Trainer do Hugging Face. As críticas foram truncadas a
+512 tokens. O treino foi feito em CPU (a opção MPS da Apple foi desativada por problemas
+de memória), com as seguintes configurações: 3 épocas, taxa de aprendizagem de 2×10⁻⁵,
+tamanho de lote de 16, decaimento de peso de 0,01, e paragem antecipada se a acurácia
+de validação não melhorasse numa época. O treino demorou cerca de 6,5 horas.
+
+O ajuste fino melhorou todos os resultados: a acurácia passou de 90,0% para 94,75%
+(+4,75 pp) e o F1 de 0,8997 para 0,9485 (+4,88 pp). O maior ganho foi na cobertura
+(+6,85 pp), o que mostra que o modelo pré-treinado no SST-2 errava bastante ao não
+identificar críticas positivas. Isso faz sentido: no SST-2, o sentimento positivo é
+expresso por adjetivos fortes e isolados, mas nas críticas do IMDB o texto mistura
+observações positivas e negativas ao longo de vários parágrafos. O ajuste fino ensinou
+o modelo a interpretar esse contexto mais longo.
+
+
+4.5 Prompting com Modelos de Língua de Grande Escala
+------------------------------------------------------
+
+Nesta tarefa, usámos o modelo Claude Haiku da Anthropic para classificar o sentimento
+das críticas apenas com instruções em linguagem natural, sem nenhum treino ou ajuste
+do modelo. A instrução define o classificador, e o conhecimento do modelo vem do seu
+pré-treino.
+
+Por razões de custo, esta experiência foi feita numa amostra de 500 críticas (250
+positivas e 250 negativas, escolhidas aleatoriamente com semente 42), em vez das 2 000
+usadas nas outras tarefas. Cada crítica foi truncada a 1 500 caracteres e o modelo foi
+configurado para responder com uma única palavra (max_tokens=10). Foram feitas 1 500
+chamadas à API (500 críticas × 3 instruções) sem erros.
+
+Testámos três tipos de instrução:
+
+Instrução genérica: pede simplesmente para classificar o sentimento como positivo ou
+negativo, sem contexto adicional. É o caso mais simples, usando apenas o conhecimento
+geral do modelo.
+
+Instrução com contexto de domínio: especifica que o texto é uma crítica de filme e que
+o modelo deve agir como analista de cinema. Ajuda o modelo a focar no domínio correto.
+
+Instrução few-shot: fornece seis exemplos classificados antes da crítica (três positivos
+e três negativos, retirados do conjunto de treino com semente 42, truncados a 300
+caracteres). Mostra ao modelo o tipo de linguagem e o formato esperado.
+
+As três instruções obtiveram acurácias entre 95,8% e 96,2%, mostrando que o Claude Haiku
+classifica sentimento com alta precisão mesmo sem treino específico. A instrução
+few-shot foi a melhor (96,2%, F1 = 0,9624), principalmente por ter a cobertura mais alta
+(97,2%). A instrução com domínio ficou em segundo (96,0%) e a genérica em terceiro (95,8%),
+mas as diferenças são pequenas (menos de 0,5 pp), o que indica que o modelo já tem um
+bom entendimento do domínio por si mesmo.
+
+Nota: estes resultados são baseados em 500 amostras e não nas 2 000 usadas nas outras
+tarefas, pelo que devem ser comparados com cautela.
+
+
+5. Resultados e Discussão
+=========================
+
+A Tabela 1 apresenta o melhor resultado de cada abordagem, ordenado por acurácia. Para
+a tarefa 2.3, incluímos tanto o melhor modelo clássico como o DistilBERT com ajuste fino,
+por serem abordagens diferentes dentro da mesma tarefa.
+
+Tabela 1 — Melhor resultado por abordagem, ordenado por acurácia.
+
+| Tarefa | Abordagem                               | Acurácia   | Precisão | Cobertura | F1     |
+|--------|-----------------------------------------|------------|----------|-----------|--------|
+| 2.4    | Claude Haiku — few-shot †               | 0,9620     | 0,9529   | 0,9720    | 0,9624 |
+| 2.3    | DistilBERT (ajuste fino, 3 épocas)      | 0,9475     | 0,9508   | 0,9462    | 0,9485 |
+| 2.3    | SVM — TF-IDF bigramas + negação         | 0,9025     | 0,9034   | 0,9061    | 0,9047 |
+| 2.1.2  | DistilBERT (pré-treinado, SST-2)        | 0,9000     | 0,9228   | 0,8777    | 0,8997 |
+| 2.1.1  | Stanza                                  | 0,8335     | 0,9333   | 0,7260    | 0,8167 |
+| 2.1.1  | VADER                                   | 0,7015     | 0,6604   | 0,8562    | 0,7456 |
+| 2.1.1  | TextBlob                                | 0,7000     | 0,6399   | 0,9442    | 0,7628 |
+| 2.2    | Léxico NRC + Negação                    | 0,6550     | 0,6254   | 0,8102    | 0,7059 |
+
+† Avaliado numa amostra de 500 críticas (250 pos + 250 neg).
+
+Os resultados mostram uma diferença de 31 pontos percentuais entre a pior e a melhor
+abordagem. É possível identificar três grupos.
+
+O grupo mais fraco inclui o classificador NRC (65,5%), o TextBlob e o VADER (≈70%). Todas
+estas abordagens classificam o sentimento palavra a palavra, sem ter em conta o contexto
+da frase. Nas críticas do IMDB, que têm em média 175 palavras e misturam frequentemente
+opiniões positivas e negativas, essa abordagem não é suficiente. O Stanza (83,4%) fica
+num nível intermédio dentro deste grupo porque analisa o sentimento frase a frase em vez
+de palavra a palavra, o que já dá melhores resultados.
+
+O grupo intermédio inclui o DistilBERT pré-treinado (90,0%) e os melhores modelos
+clássicos (até 90,25%). O facto de um SVM simples com TF-IDF e negação atingir o mesmo
+resultado que um transformer com 66 milhões de parâmetros é relevante: para um problema
+binário e equilibrado como este, um modelo clássico bem configurado é tão eficaz e muito
+mais rápido de treinar.
+
+O grupo mais forte inclui o DistilBERT com ajuste fino (94,75%) e o Claude Haiku com
+few-shot (96,2%). O ajuste fino do DistilBERT adapta o modelo ao estilo das críticas
+longas do IMDB e melhora especialmente a cobertura. O Claude Haiku, sem nenhum treino
+adicional, obtém o melhor resultado apenas com a instrução certa. A diferença de 1,45 pp
+entre os dois deve ser interpretada com cuidado, porque o Claude Haiku foi avaliado em
+apenas 500 amostras e não nas 2 000 usadas nas outras abordagens.
