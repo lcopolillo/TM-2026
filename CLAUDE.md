@@ -21,7 +21,6 @@ Data lives in `docs/input/` (not `data/` as README suggests — `data/` is gitig
 - Train: `docs/input/train/imdb_reviews_train.csv` — 21,754 rows, cols: `text`, `label` (pos/neg), `nr_tokens`
 - Test: `docs/input/test/imdb_reviews_test.csv` — 21,996 rows, same columns
 - NRC Lexicon: `data/en/NCR-lexicon.csv` — cols: `English`, `Positive`, `Negative` + emotion columns (obtain from Moodle)
-- LaTeX report template: `docs/LaTEX_Template_EN.tex` (amsbook class, uses `\chapter` as top level)
 
 ## Architecture
 
@@ -50,6 +49,6 @@ All experiment results accumulate in `results/all_results.csv`.
 
 - Course: TMCD 2025/2026, ISCTE — Dep. de Ciências e Tecnologias da Informação
 - Assignment: `docs/Trabalho.md` · group of 3 (n=3) → need ≥6 articles, ≥3 lexicon tools
-- Report: max 13 pages (10+n), PDF using `docs/LaTEX_Template_EN.tex`
+- Report: max 13 pages (10+n), PDF
 - Submission: 24 April 2026 · Presentations: 29–30 April 2026
 - Dataset is perfectly balanced (50/50 pos/neg) → accuracy is the primary metric; also report precision, recall, F1
