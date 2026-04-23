@@ -1,54 +1,41 @@
-"""Shared utilities for all sentiment analysis notebooks."""
-
 import os
 import csv
 from pathlib import Path
-
 import pandas as pd
 import numpy as np
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-
-# ---------------------------------------------------------------------------
-# Paths
-# ---------------------------------------------------------------------------
+from tqdm import tqdm
+import re
+import string
+import nltk
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords as sw
+from nltk.stem import WordNetLemmatizer
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
 RESULTS_CSV = ROOT / "results" / "all_results.csv"
-
 _RESULTS_HEADER = ["task", "approach", "preprocessing", "accuracy", "precision", "recall", "f1", "notes"]
 
-# ---------------------------------------------------------------------------
-# Data loading
-# ---------------------------------------------------------------------------
-
 def load_data(split: str = "test") -> tuple[list[str], list[str]]:
-    """Load train or test split. Returns (texts, labels)."""
     assert split in ("train", "test"), "split must be 'train' or 'test'"
     path = DATA_DIR / split / f"imdb_reviews_{split}.csv"
     df = pd.read_csv(path)
     return df["text"].tolist(), df["label"].tolist()
 
-
 NRC_LEXICON_PATH = ROOT / "data" / "en" / "NCR-lexicon.csv"
 
 def load_nrc_lexicon() -> dict[str, dict[str, int]]:
-    """Load NRC lexicon from data/en/NCR-lexicon.csv. Returns {word: {'positive': int, 'negative': int}}."""
     df = pd.read_csv(NRC_LEXICON_PATH, usecols=["English", "Positive", "Negative"])
     return {
         row["English"]: {"positive": int(row["Positive"]), "negative": int(row["Negative"])}
         for _, row in df.iterrows()
     }
 
-# ---------------------------------------------------------------------------
-# Evaluation
-# ---------------------------------------------------------------------------
-
 def evaluate_predictions(y_true: list[str], y_pred: list[str]) -> dict:
-    """Return accuracy, precision, recall, F1 (macro for multi-class)."""
     labels = sorted(set(y_true))
     avg = "binary" if len(labels) == 2 else "macro"
-    pos_label = labels[-1]  # alphabetically last: 'pos' > 'neg'
+    pos_label = labels[-1]
 
     kwargs = {"average": avg, "zero_division": 0}
     if avg == "binary":
@@ -61,13 +48,8 @@ def evaluate_predictions(y_true: list[str], y_pred: list[str]) -> dict:
         "f1": round(f1_score(y_true, y_pred, **kwargs), 4),
     }
 
-# ---------------------------------------------------------------------------
-# Results persistence
-# ---------------------------------------------------------------------------
-
 def save_results(task: str, approach: str, metrics: dict,
                  preprocessing: str = "", notes: str = "") -> None:
-    """Append one experiment row to results/all_results.csv."""
     RESULTS_CSV.parent.mkdir(parents=True, exist_ok=True)
     write_header = not RESULTS_CSV.exists()
 
@@ -87,26 +69,16 @@ def save_results(task: str, approach: str, metrics: dict,
         })
     print(f"Saved: [{task}] {approach} — acc={metrics.get('accuracy')} f1={metrics.get('f1')}")
 
-
 def load_results() -> pd.DataFrame:
-    """Load all results into a DataFrame."""
     if not RESULTS_CSV.exists():
         return pd.DataFrame(columns=_RESULTS_HEADER)
     return pd.read_csv(RESULTS_CSV)
-
-# ---------------------------------------------------------------------------
-# Text preprocessing
-# ---------------------------------------------------------------------------
-
-import re
-import string
 
 _NEGATION_WORDS = frozenset([
     "not", "no", "never", "nor", "neither", "hardly", "barely", "scarcely",
     "n't", "nt",
 ])
-_NEGATION_WINDOW = 3  # tokens to flip after a negation word
-
+_NEGATION_WINDOW = 3  
 
 def preprocess_text(
     text: str,
@@ -116,21 +88,11 @@ def preprocess_text(
     lemmatize: bool = False,
     handle_negation: bool = False,
 ) -> str:
-    """
-    Configurable text preprocessing pipeline.
-    Returns a single cleaned string.
-    """
-    import nltk
-    # lazy downloads
     for resource in ("punkt", "stopwords", "wordnet", "punkt_tab"):
         try:
             nltk.data.find(f"tokenizers/{resource}" if resource.startswith("punkt") else f"corpora/{resource}")
         except LookupError:
             nltk.download(resource, quiet=True)
-
-    from nltk.tokenize import word_tokenize
-    from nltk.corpus import stopwords as sw
-    from nltk.stem import WordNetLemmatizer
 
     if lowercase:
         text = text.lower()
@@ -145,7 +107,6 @@ def preprocess_text(
 
     if remove_stopwords:
         stop = sw.words("english")
-        # keep negation words and already-marked _NEG tokens
         tokens = [t for t in tokens if t not in stop or t in _NEGATION_WORDS or t.endswith("_NEG")]
 
     if lemmatize:
@@ -154,12 +115,7 @@ def preprocess_text(
 
     return " ".join(tokens)
 
-
 def _apply_negation(tokens: list[str]) -> list[str]:
-    """
-    Append _NEG suffix to tokens within a window after a negation word.
-    E.g. ["not", "good"] → ["not", "good_NEG"]
-    """
     result = []
     neg_counter = 0
     for token in tokens:
@@ -175,10 +131,7 @@ def _apply_negation(tokens: list[str]) -> list[str]:
             result.append(token)
     return result
 
-
 def preprocess_corpus(
     texts: list[str], **kwargs
 ) -> list[str]:
-    """Apply preprocess_text to a list of texts with a progress bar."""
-    from tqdm import tqdm
     return [preprocess_text(t, **kwargs) for t in tqdm(texts, desc="Preprocessing")]
